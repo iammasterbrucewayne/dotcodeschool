@@ -103,7 +103,7 @@ const Navbar = ({
       bg="gray.800"
       color="white"
     >
-      <Box>
+      <Box as={Link} href="/" _hover={{ textDecor: "none" }}>
         <Text fontFamily="monospace" fontSize="lg" fontWeight="semibold">
           dotcodeschool
         </Text>

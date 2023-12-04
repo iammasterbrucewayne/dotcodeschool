@@ -28,8 +28,6 @@ export default function App({ Component, pageProps, cookies }: CustomAppProps) {
 
 App.getInitialProps = ({ req }: NextPageContext) => {
   return {
-    // first time users will not have any cookies and you may not return
-    // undefined here, hence ?? is necessary
     cookies: req?.headers.cookie ?? "",
   };
 };
