@@ -99,9 +99,12 @@ const Navbar = ({
     <Flex
       align="center"
       justify="space-between"
-      p={4}
+      py={4}
+      px={[4, 12]}
       bg="gray.800"
       color="white"
+      maxW="6xl"
+      mx="auto"
     >
       <Box>
         <Text fontFamily="monospace" fontSize="lg" fontWeight="semibold">
