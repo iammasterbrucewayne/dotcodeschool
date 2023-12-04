@@ -41,7 +41,7 @@ const ModuleList = ({ modules }: ModuleListProps) => {
   return (
     <Box mb={4}>
       <Heading as="h2" size="lg" mb={2}>
-        What you'll learn:
+        What you&apos;ll learn:
       </Heading>
       <ul>
         {modules.map((module, index) => (
