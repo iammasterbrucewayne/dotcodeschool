@@ -100,11 +100,8 @@ const Navbar = ({
       align="center"
       justify="space-between"
       py={4}
-      px={[4, 12]}
       bg="gray.800"
       color="white"
-      maxW="6xl"
-      mx="auto"
     >
       <Box>
         <Text fontFamily="monospace" fontSize="lg" fontWeight="semibold">

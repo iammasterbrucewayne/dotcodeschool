@@ -5,9 +5,9 @@ import PrimaryButton from "@/app/common/components/primary-button";
 
 export default function Index() {
   return (
-    <Fragment>
+    <Box maxW="6xl" mx="auto" px={[4, 12]}>
       <Navbar />
-      <Box mt={20} maxW="6xl" mx="auto" px={[4, 12]}>
+      <Box mt={20}>
         <Heading as="h1" fontWeight="800" size="4xl" maxW="3xl">
           Learn to Code Web3 Apps by Building Real Projects.
         </Heading>
@@ -27,6 +27,6 @@ export default function Index() {
           Get Started
         </PrimaryButton>
       </Box>
-    </Fragment>
+    </Box>
   );
 }
