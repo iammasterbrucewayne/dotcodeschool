@@ -117,12 +117,9 @@ const TerminalEmulator = ({ ...props }: ChakraProps) => {
       <form onSubmit={handleCommandSubmit}>
         <FormControl>
           <InputGroup fontFamily="monospace">
-            <InputLeftAddon
-              children="$"
-              bg="transparent"
-              border="none"
-              px={0}
-            />
+            <InputLeftAddon bg="transparent" border="none" px={0}>
+              $
+            </InputLeftAddon>
             <Input
               ref={inputRef}
               type="text"
