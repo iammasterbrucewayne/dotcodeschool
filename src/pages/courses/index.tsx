@@ -1,8 +1,9 @@
 import Navbar from "@/app/common/components/navbar";
+import PrimaryButton from "@/app/common/components/primary-button";
+import courseModules from "@/static/course-modules";
 import { ArrowBackIcon, CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Box,
-  Button,
   Heading,
   Link,
   Text,
@@ -13,11 +14,17 @@ import {
   AccordionIcon,
   Grid,
   GridItem,
+  Tag,
+  Progress,
+  VStack,
+  HStack,
 } from "@chakra-ui/react";
+import { map, size } from "lodash";
 
 interface Module {
   title: string;
-  content: string;
+  description: string;
+  progress?: number;
 }
 
 interface ModuleProps {
@@ -25,19 +32,38 @@ interface ModuleProps {
 }
 
 const Module = ({ module }: ModuleProps) => {
-  const { title, content } = module;
+  const { title, description, progress = 0 } = module;
 
   return (
     <AccordionItem>
-      <h2>
-        <AccordionButton>
-          <Box flex="1" textAlign="left">
-            {title}
-          </Box>
-          <AccordionIcon />
-        </AccordionButton>
-      </h2>
-      <AccordionPanel pb={4}>{content}</AccordionPanel>
+      <AccordionButton py={6}>
+        <VStack spacing={4} w="full" align="start">
+          <HStack w="full">
+            <Text flex="1" textAlign="left" fontWeight="semibold" fontSize="xl">
+              {title}
+            </Text>
+            <AccordionIcon fontSize={48} />
+          </HStack>
+          <VStack w="90%" align="end">
+            <Progress
+              colorScheme="green"
+              w="full"
+              value={progress}
+              size="sm"
+              rounded="full"
+            />
+            <Text fontSize="sm" fontWeight="500" color="gray.400">
+              {progress}% Complete
+            </Text>
+          </VStack>
+        </VStack>
+      </AccordionButton>
+      <AccordionPanel pb={12} w="90%" pt={0}>
+        <Text>{description}</Text>
+        <PrimaryButton as="a" href="/courses/1" mt={12}>
+          Start Lesson
+        </PrimaryButton>
+      </AccordionPanel>
     </AccordionItem>
   );
 };
@@ -81,27 +107,15 @@ interface CoursePageProps {
   author: { name: string; url: string };
   description: string;
   modules: Module[];
+  tags: { language: string; level: string };
 }
 
 const CoursePage = ({
   title = "Rust State Machine: Basic Concepts for Blockchain Developement",
   author = { name: "Shawn Tabrizi", url: "https://twitter.com/ShawnTabrizi" },
   description = "This is an introductory course on how to develop a simple state machine using Rust, inspired by the Polkadot SDK. It's designed to teach various entry-level concepts around Rust and blockchain development. This tutorial is unique as it builds everything from scratch, without relying on any external libraries like FRAME, offering a deeper understanding of the underlying mechanisms.",
-  modules = [
-    { title: "Rust Programming Basics", content: "Module 1 content" },
-    { title: "State Machine Design", content: "Module 2 content" },
-    {
-      title: "Polkadot SDK and Substrate Influence",
-      content: "Module 3 content",
-    },
-    { title: "Macro Utilization in Rust", content: "Module 3 content" },
-    { title: "Blockchain Principles", content: "Module 3 content" },
-    {
-      title: "Error Handling and State Management",
-      content: "Module 3 content",
-    },
-    { title: "Practical Application", content: "Module 3 content" },
-  ],
+  modules = courseModules,
+  tags = { language: "Rust", level: "Beginner" },
 }: CoursePageProps) => {
   return (
     <Box maxW="6xl" mx="auto" px={[4, 12]}>
@@ -119,7 +133,18 @@ const CoursePage = ({
         </Link>
       </Text>
       <Text my={8}>{description}</Text>
+      {map(tags, (tag, key) => (
+        <Tag key={key} mr={2} mb={2}>
+          {tag}
+        </Tag>
+      ))}
       <ModuleList modules={modules} />
+      <Heading as="h2" size="lg" fontWeight="800" my={8}>
+        Course Content
+      </Heading>
+      <Text mt={4} mb={8} color="gray.400" fontWeight="500">
+        {size(modules)} lessons
+      </Text>
       <Accordion allowToggle>
         {modules.map((module, index) => (
           <Module key={index} module={module} />
