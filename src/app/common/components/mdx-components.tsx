@@ -39,7 +39,25 @@ const MDXComponents = {
         getLineProps: Function;
         getTokenProps: Function;
       }) => (
-        <Box as="pre" style={style} overflow="scroll" py={4} px={6} rounded={8}>
+        <Box
+          as="pre"
+          style={style}
+          overflowX="auto"
+          py={4}
+          px={6}
+          rounded={8}
+          sx={{
+            "::-webkit-scrollbar": {
+              height: "6px",
+              borderRadius: "8px",
+            },
+            "::-webkit-scrollbar-thumb": {
+              height: "6px",
+              borderRadius: "8px",
+            },
+            ":hover::-webkit-scrollbar-thumb": { background: "gray.700" },
+          }}
+        >
           {tokens.map((line, i) => (
             <div key={i} {...getLineProps({ line })}>
               {line.map((token: any, key: Key | null | undefined) => (

@@ -45,7 +45,24 @@ export default function CourseModule({ mdxSource }: Props) {
     <Box h="100vh" px={12} mx="auto">
       <Navbar cta={false} />
       <Grid templateColumns="repeat(12, 1fr)" gap={6}>
-        <GridItem colSpan={5} h="90vh" overflow="scroll" pr={6} pt={4}>
+        <GridItem
+          colSpan={5}
+          h="90vh"
+          overflowY="auto"
+          pr={6}
+          pt={4}
+          sx={{
+            "::-webkit-scrollbar": {
+              width: "6px",
+              borderRadius: "8px",
+            },
+            "::-webkit-scrollbar-thumb": {
+              width: "6px",
+              borderRadius: "8px",
+            },
+            ":hover::-webkit-scrollbar-thumb": { background: "gray.700" },
+          }}
+        >
           <MDXRemote {...mdxSource} components={MDXComponents} />
         </GridItem>
         <GridItem colSpan={7} h="85vh" overflow="clip">
