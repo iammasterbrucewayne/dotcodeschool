@@ -42,12 +42,12 @@ const TABS = [
 
 export default function CourseModule({ mdxSource }: Props) {
   return (
-    <Box h="100vh" px={12} mx="auto">
+    <Box h="100vh" px={[6, 12]} mx="auto">
       <Navbar cta={false} />
       <Grid templateColumns="repeat(12, 1fr)" gap={6}>
         <GridItem
-          colSpan={5}
-          h="90vh"
+          colSpan={[12, 5]}
+          h={["fit-content", "90vh"]}
           overflowY="auto"
           pr={6}
           pt={4}
@@ -65,7 +65,7 @@ export default function CourseModule({ mdxSource }: Props) {
         >
           <MDXRemote {...mdxSource} components={MDXComponents} />
         </GridItem>
-        <GridItem colSpan={7} h="85vh" overflow="clip">
+        <GridItem colSpan={[12, 7]} h="85vh" overflow="clip">
           {MODE === MODES.EDITOR ? (
             <EditorTabs />
           ) : (
