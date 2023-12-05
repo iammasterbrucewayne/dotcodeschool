@@ -1,5 +1,4 @@
 import Navbar from "@/app/common/components/navbar";
-import { Fragment } from "react";
 import { Box, Heading, Text, Button, Link } from "@chakra-ui/react";
 import PrimaryButton from "@/app/common/components/primary-button";
 

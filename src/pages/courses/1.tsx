@@ -121,6 +121,6 @@ function EditorTabs() {
 }
 
 export async function getStaticProps() {
-  const res = await getContent();
+  const res = await getContent("1JwFN6H62m8cgaZ2UnHkXj");
   return res;
 }
