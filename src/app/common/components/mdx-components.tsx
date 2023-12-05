@@ -1,6 +1,9 @@
-import { Box, Heading, Text, Link, Code } from "@chakra-ui/react";
+import { CopyIcon } from "@chakra-ui/icons";
+import { Box, Heading, Text, Link, Code, IconButton } from "@chakra-ui/react";
 import { Highlight, themes } from "prism-react-renderer";
-import { Key } from "react";
+import { CopyToClipboard } from "react-copy-to-clipboard";
+
+import { Key, useState } from "react";
 
 const MDXComponents = {
   h1: (props: any) => <Heading as="h1" size="xl" {...props} />,
@@ -16,59 +19,88 @@ const MDXComponents = {
     <Code colorScheme="orange" variant="outline" {...props} />
   ),
 
-  pre: (props: any) => (
-    <Highlight
-      theme={themes.dracula}
-      code={props.children.props.children.trim()}
-      language={
-        props.children.props.className
-          ? props.children.props.className.replace("language-", "")
-          : "rust"
-      }
-    >
-      {({
-        className,
-        style,
-        tokens,
-        getLineProps,
-        getTokenProps,
-      }: {
-        className: string;
-        style: object;
-        tokens: any[];
-        getLineProps: Function;
-        getTokenProps: Function;
-      }) => (
-        <Box
-          as="pre"
-          style={style}
-          overflowX="auto"
-          py={4}
-          px={6}
-          rounded={8}
-          sx={{
-            "::-webkit-scrollbar": {
-              height: "6px",
-              borderRadius: "8px",
-            },
-            "::-webkit-scrollbar-thumb": {
-              height: "6px",
-              borderRadius: "8px",
-            },
-            ":hover::-webkit-scrollbar-thumb": { background: "gray.700" },
-          }}
+  pre: (props: any) => {
+    const [isHovered, setIsHovered] = useState(false);
+    const code = props.children.props.children.trim();
+
+    return (
+      <Box
+        position="relative"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <Highlight
+          theme={themes.dracula}
+          code={code}
+          language={
+            props.children.props.className
+              ? props.children.props.className.replace("language-", "")
+              : "rust"
+          }
         >
-          {tokens.map((line, i) => (
-            <div key={i} {...getLineProps({ line })}>
-              {line.map((token: any, key: Key | null | undefined) => (
-                <span key={key} {...getTokenProps({ token })} />
-              ))}
-            </div>
-          ))}
-        </Box>
-      )}
-    </Highlight>
-  ),
+          {({
+            className,
+            style,
+            tokens,
+            getLineProps,
+            getTokenProps,
+          }: {
+            className: string;
+            style: object;
+            tokens: any[];
+            getLineProps: Function;
+            getTokenProps: Function;
+          }) => (
+            <Box
+              as="pre"
+              style={style}
+              overflowX="auto"
+              py={4}
+              px={6}
+              rounded={8}
+              sx={{
+                "::-webkit-scrollbar": {
+                  height: "6px",
+                  borderRadius: "8px",
+                },
+                "::-webkit-scrollbar-thumb": {
+                  height: "6px",
+                  borderRadius: "8px",
+                },
+                ":hover::-webkit-scrollbar-thumb": { background: "gray.700" },
+              }}
+            >
+              <Box pr={12}>
+                {tokens.map((line, i) => (
+                  <div key={i} {...getLineProps({ line })}>
+                    {line.map((token: any, key: Key | null | undefined) => (
+                      <span key={key} {...getTokenProps({ token })} />
+                    ))}
+                  </div>
+                ))}
+              </Box>
+            </Box>
+          )}
+        </Highlight>
+        {isHovered && (
+          <CopyToClipboard text={code}>
+            <IconButton
+              as={CopyIcon}
+              aria-label="Copy code to clipboard"
+              position="absolute"
+              top={3}
+              right={3}
+              size="sm"
+              p={2}
+              color="gray.400"
+              cursor="pointer"
+              _hover={{ color: "gray.200", bg: "gray.600" }}
+            />
+          </CopyToClipboard>
+        )}
+      </Box>
+    );
+  },
 
   blockquote: (props: any) => (
     <Box
