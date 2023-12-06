@@ -1,6 +1,7 @@
+// TODO: Refactoring
+
 import Navbar from "@/app/common/components/navbar";
 import PrimaryButton from "@/app/common/components/primary-button";
-import courseModules from "@/static/course-modules";
 import { ArrowBackIcon, CheckCircleIcon } from "@chakra-ui/icons";
 import {
   Box,
@@ -19,9 +20,11 @@ import {
   VStack,
   HStack,
 } from "@chakra-ui/react";
-import { map, size } from "lodash";
+import { get, map, size } from "lodash";
+import { getContent } from "../api/get-content";
 
 interface Module {
+  id: string;
   title: string;
   description: string;
   progress?: number;
@@ -32,7 +35,7 @@ interface ModuleProps {
 }
 
 const Module = ({ module }: ModuleProps) => {
-  const { title, description, progress = 0 } = module;
+  const { id, title, description, progress = 0 } = module;
 
   return (
     <AccordionItem>
@@ -60,7 +63,7 @@ const Module = ({ module }: ModuleProps) => {
       </AccordionButton>
       <AccordionPanel pb={12} w="90%" pt={0}>
         <Text>{description}</Text>
-        <PrimaryButton as="a" href="/courses/1" mt={12}>
+        <PrimaryButton as="a" href={`/courses/${id}`} mt={12}>
           Start Lesson
         </PrimaryButton>
       </AccordionPanel>
@@ -102,20 +105,25 @@ const ModuleList = ({ modules }: ModuleListProps) => {
   );
 };
 
+type Author = {
+  name: string;
+  url: string;
+};
+
 interface CoursePageProps {
   title: string;
-  author: { name: string; url: string };
+  author: Author;
   description: string;
   modules: Module[];
   tags: { language: string; level: string };
 }
 
 const CoursePage = ({
-  title = "Rust State Machine: Basic Concepts for Blockchain Developement",
-  author = { name: "Shawn Tabrizi", url: "https://twitter.com/ShawnTabrizi" },
-  description = "This is an introductory course on how to develop a simple state machine using Rust, inspired by the Polkadot SDK. It's designed to teach various entry-level concepts around Rust and blockchain development. This tutorial is unique as it builds everything from scratch, without relying on any external libraries like FRAME, offering a deeper understanding of the underlying mechanisms.",
-  modules = courseModules,
-  tags = { language: "Rust", level: "Beginner" },
+  title,
+  author,
+  description,
+  modules,
+  tags,
 }: CoursePageProps) => {
   return (
     <Box maxW="6xl" mx="auto" px={[4, 12]}>
@@ -155,3 +163,65 @@ const CoursePage = ({
 };
 
 export default CoursePage;
+
+type Lesson = {
+  id: string;
+  title: string;
+  description: string;
+};
+
+interface Entry {
+  moduleName: string;
+  moduleDescription: string;
+  author: Author;
+  level: string;
+  language: string;
+  lessons: Lesson[];
+}
+
+export async function getStaticProps() {
+  const entry = await getContent("1JwFN6H62m8cgaZ2UnHkXj");
+
+  const { moduleName, moduleDescription, author, level, language } =
+    entry.fields as any;
+
+  const authorFields = author.fields;
+
+  if (!authorFields) {
+    throw new Error("Author fields are undefined");
+  }
+
+  const { name, url }: Author = authorFields;
+  const lessons = entry.fields.lessons;
+
+  if (!lessons || !Array.isArray(lessons) || lessons.length === 0) {
+    throw new Error(
+      "Failed to fetch the entry from Contentful or lessons array is null or empty"
+    );
+  }
+
+  const modules = map(lessons, (lesson) => {
+    if (!lesson) {
+      throw new Error("Lesson is undefined");
+    }
+
+    return {
+      id: get(lesson, "sys.id"),
+      title: get(lesson, "fields.lessonName"),
+      description: get(lesson, "fields.lessonDescription"),
+    };
+  });
+
+  return {
+    props: {
+      title: moduleName,
+      author: {
+        name,
+        url,
+      },
+      description: moduleDescription,
+      modules: modules,
+      tags: { language, level },
+    },
+  };
+}
