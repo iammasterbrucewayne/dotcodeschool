@@ -16,8 +16,15 @@ import TerminalEmulator from "@/app/common/components/terminal-emulator";
 import Navbar from "@/app/common/components/navbar";
 import { map } from "lodash";
 
+type File = {
+  fileName: string;
+  code: string;
+  language: string;
+};
+
 interface Props {
   mdxSource: MDXRemoteSerializeResult;
+  files: File[];
 }
 
 const MODES = {
@@ -26,21 +33,8 @@ const MODES = {
 };
 const MODE = MODES.EDITOR;
 
-const TABS = [
-  {
-    label: "main.rs",
-    defaultValue: `fn main() {
-    println!("Hello, world!");
-}
-`,
-  },
-  {
-    label: "lib.rs",
-    language: "rust",
-  },
-];
-
-export default function CourseModule({ mdxSource }: Props) {
+export default function CourseModule({ mdxSource, files }: Props) {
+  console.log(files);
   return (
     <Box h="100vh" px={[6, 12]} mx="auto">
       <Navbar cta={false} />
@@ -67,7 +61,7 @@ export default function CourseModule({ mdxSource }: Props) {
         </GridItem>
         <GridItem colSpan={[12, 7]} h="85vh" overflow="clip">
           {MODE === MODES.EDITOR ? (
-            <EditorTabs />
+            <EditorTabs files={files} />
           ) : (
             <TerminalEmulator h="100%" />
           )}
@@ -77,7 +71,11 @@ export default function CourseModule({ mdxSource }: Props) {
   );
 }
 
-function EditorTabs() {
+interface EditorTabsProps {
+  files: File[];
+}
+
+function EditorTabs({ files }: EditorTabsProps) {
   return (
     <Tabs
       variant="enclosed"
@@ -89,29 +87,31 @@ function EditorTabs() {
       rounded={8}
     >
       <TabList>
-        {map(TABS, (tab) => (
-          <Tab
-            key={tab.label}
-            border="none"
-            _selected={{
-              bg: "whiteAlpha.200",
-              color: "orange.200",
-              borderBottom: "2px solid",
-              borderColor: "orange.200",
-            }}
-          >
-            {tab.label}
-          </Tab>
-        ))}
+        {map(files, (file, i) => {
+          return (
+            <Tab
+              key={i}
+              border="none"
+              _selected={{
+                bg: "whiteAlpha.200",
+                color: "orange.200",
+                borderBottom: "2px solid",
+                borderColor: "orange.200",
+              }}
+            >
+              {file.fileName}
+            </Tab>
+          );
+        })}
       </TabList>
       <TabPanels h="95%" pt={2}>
-        {map(TABS, (tab) => (
-          <TabPanel key={tab.label} h="100%" p={0}>
+        {map(files, (file, i) => (
+          <TabPanel key={i} h="100%" p={0}>
             <Editor
               height="100%"
               theme="vs-dark"
-              defaultLanguage={tab.language || "rust"}
-              defaultValue={tab.defaultValue || "// some comment"}
+              defaultLanguage={file.language || "rust"}
+              defaultValue={file.code || "// some comment"}
             />
           </TabPanel>
         ))}
@@ -121,6 +121,6 @@ function EditorTabs() {
 }
 
 export async function getStaticProps() {
-  const res = await getContent("1JwFN6H62m8cgaZ2UnHkXj");
+  const res = await getContent("7ypOiKAixXIT9uI2F2QRrS");
   return res;
 }
