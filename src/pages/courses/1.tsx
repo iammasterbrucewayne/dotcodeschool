@@ -34,7 +34,6 @@ const MODES = {
 const MODE = MODES.EDITOR;
 
 export default function CourseModule({ mdxSource, files }: Props) {
-  console.log(files);
   return (
     <Box h="100vh" px={[6, 12]} mx="auto">
       <Navbar cta={false} />
