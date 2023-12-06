@@ -9,6 +9,7 @@ import {
   TabPanel,
   TabPanels,
   Tabs,
+  VStack,
 } from "@chakra-ui/react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
 import { map } from "lodash";
@@ -16,9 +17,10 @@ import { serialize } from "next-mdx-remote/serialize";
 import Editor from "@monaco-editor/react";
 
 import { getContent } from "../api/get-content";
-import MDXComponents from "@/app/common/components/mdx-components";
+import MDXComponents from "@/app/common/components/lessons-interface/mdx-components";
 import Navbar from "@/app/common/components/navbar";
-import TerminalEmulator from "@/app/common/components/terminal-emulator";
+import TerminalEmulator from "@/app/common/components/lessons-interface/terminal-emulator";
+import BottomNavbar from "@/app/common/components/lessons-interface/bottom-navbar";
 
 interface File {
   fileName: string;
@@ -39,37 +41,40 @@ const MODE = MODES.EDITOR;
 
 export default function CourseModule({ mdxSource, files }: Props) {
   return (
-    <Box h="100vh" px={[6, 12]} mx="auto">
-      <Navbar cta={false} />
-      <Grid templateColumns="repeat(12, 1fr)" gap={6}>
-        <GridItem
-          colSpan={[12, 5]}
-          h={["fit-content", "90vh"]}
-          overflowY="auto"
-          pr={6}
-          pt={4}
-          sx={{
-            "::-webkit-scrollbar": {
-              width: "6px",
-              borderRadius: "8px",
-            },
-            "::-webkit-scrollbar-thumb": {
-              width: "6px",
-              borderRadius: "8px",
-            },
-            ":hover::-webkit-scrollbar-thumb": { background: "gray.700" },
-          }}
-        >
-          <MDXRemote {...mdxSource} components={MDXComponents} />
-        </GridItem>
-        <GridItem colSpan={[12, 7]} h="85vh" overflow="clip">
-          {MODE === MODES.EDITOR ? (
-            <EditorTabs files={files} />
-          ) : (
-            <TerminalEmulator h="100%" />
-          )}
-        </GridItem>
-      </Grid>
+    <Box h="100vh" position="relative">
+      <Box h="95vh" px={[6, 12]} mx="auto">
+        <Navbar cta={false} />
+        <Grid templateColumns="repeat(12, 1fr)" gap={1}>
+          <GridItem
+            colSpan={[12, 5]}
+            h={["fit-content", "80vh"]}
+            overflowY="auto"
+            pr={6}
+            pt={4}
+            sx={{
+              "::-webkit-scrollbar": {
+                width: "6px",
+                borderRadius: "8px",
+              },
+              "::-webkit-scrollbar-thumb": {
+                width: "6px",
+                borderRadius: "8px",
+              },
+              ":hover::-webkit-scrollbar-thumb": { background: "gray.700" },
+            }}
+          >
+            <MDXRemote {...mdxSource} components={MDXComponents} />
+          </GridItem>
+          <GridItem colSpan={[12, 7]} h="80vh" overflow="clip">
+            {MODE === MODES.EDITOR ? (
+              <EditorTabs files={files} />
+            ) : (
+              <TerminalEmulator h="100%" />
+            )}
+          </GridItem>
+        </Grid>
+      </Box>
+      <BottomNavbar />
     </Box>
   );
 }
@@ -107,7 +112,7 @@ function EditorTabs({ files }: EditorTabsProps) {
           );
         })}
       </TabList>
-      <TabPanels h="95%" pt={2}>
+      <TabPanels h="90%" pt={2}>
         {map(files, (file, i) => (
           <TabPanel key={i} h="100%" p={0}>
             <Editor
@@ -123,11 +128,7 @@ function EditorTabs({ files }: EditorTabsProps) {
   );
 }
 
-export async function getStaticProps({
-  params: { id },
-}: {
-  params: { id: string };
-}) {
+async function fetchEntry(id: string) {
   const entry = await getContent(id);
   if (
     !entry.fields.files ||
@@ -138,26 +139,37 @@ export async function getStaticProps({
       "Failed to fetch the entry from Contentful or files array is null or empty"
     );
   }
+  return entry;
+}
 
-  const files = await Promise.all(
-    map(entry.fields.files, async (file: any) => {
-      if (typeof file !== "object" || !file.fields) {
-        throw new Error("File is not an object or file.fields is null");
-      }
+async function fetchFile(file: any) {
+  if (typeof file !== "object" || !file.fields) {
+    throw new Error("File is not an object or file.fields is null");
+  }
 
-      const { url, fileName } = file.fields.file;
-      const response = await fetch(`https:${url}`);
+  const { url, fileName } = file.fields.file;
+  const response = await fetch(`https:${url}`);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
 
-      return {
-        fileName,
-        code: await response.text(),
-      };
-    })
-  ).catch(console.error);
+  return {
+    fileName,
+    code: await response.text(),
+  };
+}
+
+export async function getStaticProps({
+  params: { id, modules },
+}: {
+  params: { id: string; modules: any[] };
+}) {
+  const entry: any = await fetchEntry(id);
+
+  const files = await Promise.all(map(entry.fields.files, fetchFile)).catch(
+    console.error
+  );
 
   const lessonContent: any = entry.fields.lessonContent;
 
