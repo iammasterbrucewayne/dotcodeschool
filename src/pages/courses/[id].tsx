@@ -161,9 +161,9 @@ async function fetchFile(file: any) {
 }
 
 export async function getStaticProps({
-  params: { id, modules },
+  params: { id },
 }: {
-  params: { id: string; modules: any[] };
+  params: { id: string };
 }) {
   const entry: any = await fetchEntry(id);
 
