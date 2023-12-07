@@ -1,13 +1,24 @@
-import { CopyIcon } from "@chakra-ui/icons";
+import { CheckIcon, CopyIcon } from "@chakra-ui/icons";
 import { Box, Heading, Text, Link, Code, IconButton } from "@chakra-ui/react";
 import { Highlight, themes } from "prism-react-renderer";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 
-import { Key, useState } from "react";
+import { Key, useEffect, useState } from "react";
 
 const PreComponent = (props: any) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
   const code = props.children.props.children.trim();
+
+  useEffect(() => {
+    if (copySuccess) {
+      const timer = setTimeout(() => {
+        setCopySuccess(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [copySuccess]);
 
   return (
     <Box
@@ -68,18 +79,18 @@ const PreComponent = (props: any) => {
           </Box>
         )}
       </Highlight>
-      {isHovered && (
-        <CopyToClipboard text={code}>
+      {(isHovered || copySuccess) && (
+        <CopyToClipboard text={code} onCopy={() => setCopySuccess(true)}>
           <IconButton
-            as={CopyIcon}
+            as={copySuccess ? CheckIcon : CopyIcon}
             aria-label="Copy code to clipboard"
             position="absolute"
             top={3}
             right={3}
             size="sm"
             p={2}
-            color="gray.400"
-            cursor="pointer"
+            color={copySuccess ? "green.200" : "gray.400"}
+            cursor={copySuccess ? "default" : "pointer"}
             _hover={{ color: "gray.200", bg: "gray.600" }}
           />
         </CopyToClipboard>
