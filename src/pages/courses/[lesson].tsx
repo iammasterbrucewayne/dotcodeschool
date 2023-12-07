@@ -178,9 +178,9 @@ export async function getStaticProps({
   const courseEntry = await getContentById("1JwFN6H62m8cgaZ2UnHkXj");
   const lessons = getLessons(courseEntry);
   const modules = mapLessonsToModules(lessons);
-  const module = nth(modules, parsedLesson - 1);
+  const lessonModule = nth(modules, parsedLesson - 1);
 
-  const entry: any = await fetchEntry(module?.id);
+  const entry: any = await fetchEntry(lessonModule?.id);
 
   const files = await Promise.all(map(entry.fields.files, fetchFile)).catch(
     console.error
