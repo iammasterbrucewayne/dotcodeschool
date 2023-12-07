@@ -1,6 +1,6 @@
 import { createClient } from "contentful";
 
-export async function getContent(entryId: string) {
+function initContentfulClient() {
   const {
     CONTENTFUL_SPACE_ID,
     CONTENTFUL_ENVIRONMENT,
@@ -21,7 +21,19 @@ export async function getContent(entryId: string) {
     accessToken: CONTENTFUL_ACCESS_TOKEN,
   });
 
-  const entry = await client.getEntry(entryId);
+  return client;
+}
 
+export async function getContentById(entryId: string) {
+  const client = initContentfulClient();
+  const entry = await client.getEntry(entryId);
+  return entry;
+}
+
+export async function getContentByType(contentType: string) {
+  const client = initContentfulClient();
+  const entry = await client.getEntries({
+    content_type: contentType,
+  });
   return entry;
 }

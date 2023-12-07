@@ -10,6 +10,7 @@ import {
   DrawerHeader,
   DrawerBody,
   Text,
+  Link,
 } from "@chakra-ui/react";
 import {
   HamburgerIcon,
@@ -19,7 +20,13 @@ import {
 import { useState } from "react";
 import { map } from "lodash";
 
-const BottomNavbar = () => {
+interface BottomNavbarProps {
+  prev?: number;
+  next?: number;
+  modules: any[];
+}
+
+const BottomNavbar = ({ prev, next, modules }: BottomNavbarProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleDrawerOpen = () => {
@@ -49,14 +56,36 @@ const BottomNavbar = () => {
 
         <Flex gap={2}>
           <Button variant="outline">Check Answers</Button>
-          <Button variant="ghost" gap={2}>
-            <ChevronLeftIcon fontSize={24} />
-            <Text display={["none", "block"]}>Back</Text>
-          </Button>
-          <Button variant="ghost" gap={2}>
-            <Text display={["none", "block"]}>Next</Text>
-            <ChevronRightIcon fontSize={24} />
-          </Button>
+          {prev ? (
+            <Button
+              as={Link}
+              href={`/courses/${prev}`}
+              variant="ghost"
+              gap={2}
+              _hover={{ textDecor: "none", color: "green.300" }}
+            >
+              <ChevronLeftIcon fontSize={24} />
+              <Text display={["none", "block"]}>Back</Text>
+            </Button>
+          ) : (
+            ""
+          )}
+          {next ? (
+            <Button
+              as={Link}
+              href={`/courses/${next}`}
+              variant="ghost"
+              gap={2}
+              _hover={{ textDecor: "none", color: "green.300" }}
+            >
+              <Text display={["none", "block"]}>Next</Text>
+              <ChevronRightIcon fontSize={24} />
+            </Button>
+          ) : (
+            <Button variant="solid" colorScheme="green" px={8} mr={4}>
+              Finish
+            </Button>
+          )}
         </Flex>
       </Flex>
 
@@ -69,8 +98,20 @@ const BottomNavbar = () => {
           <DrawerContent>
             <DrawerCloseButton />
             <DrawerHeader>Lessons</DrawerHeader>
-            <DrawerBody>
-              {/* list of lessons */}
+            <DrawerBody px={0}>
+              {map(modules, (module) => (
+                <Link
+                  key={module.id}
+                  display="block"
+                  href={`/courses/${module.lesson}`}
+                  w="full"
+                  py={2}
+                  px={4}
+                  _hover={{ textDecor: "none", bg: "gray.600" }}
+                >
+                  {module.title}
+                </Link>
+              ))}
             </DrawerBody>
           </DrawerContent>
         </DrawerOverlay>

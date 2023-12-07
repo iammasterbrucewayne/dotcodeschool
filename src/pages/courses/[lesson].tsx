@@ -12,11 +12,11 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
-import { map } from "lodash";
+import { map, nth } from "lodash";
 import { serialize } from "next-mdx-remote/serialize";
 import Editor from "@monaco-editor/react";
 
-import { getContent } from "../api/get-content";
+import { getContentById } from "../api/get-content";
 import MDXComponents from "@/app/common/components/lessons-interface/mdx-components";
 import Navbar from "@/app/common/components/navbar";
 import TerminalEmulator from "@/app/common/components/lessons-interface/terminal-emulator";
@@ -31,6 +31,9 @@ interface File {
 interface Props {
   mdxSource: MDXRemoteSerializeResult;
   files: File[];
+  prev: number;
+  next: number;
+  modules: any[];
 }
 
 const MODES = {
@@ -39,7 +42,13 @@ const MODES = {
 };
 const MODE = MODES.EDITOR;
 
-export default function CourseModule({ mdxSource, files }: Props) {
+export default function CourseModule({
+  mdxSource,
+  files,
+  prev,
+  next,
+  modules,
+}: Props) {
   return (
     <Box h="100vh" position="relative">
       <Box h="95vh" px={[6, 12]} mx="auto">
@@ -74,7 +83,7 @@ export default function CourseModule({ mdxSource, files }: Props) {
           </GridItem>
         </Grid>
       </Box>
-      <BottomNavbar />
+      <BottomNavbar prev={prev} next={next} modules={modules} />
     </Box>
   );
 }
@@ -129,7 +138,7 @@ function EditorTabs({ files }: EditorTabsProps) {
 }
 
 async function fetchEntry(id: string) {
-  const entry = await getContent(id);
+  const entry = await getContentById(id);
   if (
     !entry.fields.files ||
     !Array.isArray(entry.fields.files) ||
@@ -161,11 +170,17 @@ async function fetchFile(file: any) {
 }
 
 export async function getStaticProps({
-  params: { id },
+  params: { lesson },
 }: {
-  params: { id: string };
+  params: { lesson: string };
 }) {
-  const entry: any = await fetchEntry(id);
+  const parsedLesson = Number(lesson);
+  const courseEntry = await getContentById("1JwFN6H62m8cgaZ2UnHkXj");
+  const lessons = getLessons(courseEntry);
+  const modules = mapLessonsToModules(lessons);
+  const module = nth(modules, parsedLesson - 1);
+
+  const entry: any = await fetchEntry(module?.id);
 
   const files = await Promise.all(map(entry.fields.files, fetchFile)).catch(
     console.error
@@ -175,7 +190,12 @@ export async function getStaticProps({
 
   const mdxSource = await serialize(lessonContent);
 
-  return { props: { mdxSource, files } };
+  const prev = parsedLesson > 1 ? parsedLesson - 1 : null;
+  const next = parsedLesson < modules.length ? parsedLesson + 1 : null;
+
+  return {
+    props: { mdxSource, files, prev, next, modules },
+  };
 }
 
 // Validates and returns the lessons array
@@ -191,12 +211,13 @@ function getLessons(entry: any) {
 
 // Maps lessons to modules
 function mapLessonsToModules(lessons: any[]) {
-  return lessons.map((lesson) => {
+  return lessons.map((lesson, index) => {
     if (!lesson) {
       throw new Error("Lesson is undefined");
     }
 
     return {
+      lesson: `${index + 1}`,
       id: lesson.sys.id,
       title: lesson.fields.lessonName,
       description: lesson.fields.lessonDescription,
@@ -205,14 +226,16 @@ function mapLessonsToModules(lessons: any[]) {
 }
 
 export async function getStaticPaths() {
-  const entry = await getContent("1JwFN6H62m8cgaZ2UnHkXj");
+  const entry = await getContentById("1JwFN6H62m8cgaZ2UnHkXj");
   const lessons = getLessons(entry);
   const modules = mapLessonsToModules(lessons);
 
+  const paths = map(modules, (module) => ({
+    params: { lesson: module.lesson },
+  }));
+
   return {
-    paths: map(modules, (module) => ({
-      params: { id: module.id },
-    })),
+    paths,
     fallback: false,
   };
 }

@@ -21,21 +21,22 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { get, map, size } from "lodash";
-import { getContent } from "../api/get-content";
+import { getContentByType } from "../api/get-content";
 
-interface Module {
+type Module = {
   id: string;
+  index: number;
   title: string;
   description: string;
   progress?: number;
-}
+};
 
 interface ModuleProps {
   module: Module;
 }
 
 const Module = ({ module }: ModuleProps) => {
-  const { id, title, description, progress = 0 } = module;
+  const { index, title, description, progress = 0 } = module;
 
   return (
     <AccordionItem>
@@ -63,7 +64,7 @@ const Module = ({ module }: ModuleProps) => {
       </AccordionButton>
       <AccordionPanel pb={12} w="90%" pt={0}>
         <Text>{description}</Text>
-        <PrimaryButton as="a" href={`/courses/${id}`} mt={12}>
+        <PrimaryButton as="a" href={`/courses/${index + 1}`} mt={12}>
           Start Lesson
         </PrimaryButton>
       </AccordionPanel>
@@ -164,23 +165,9 @@ const CoursePage = ({
 
 export default CoursePage;
 
-type Lesson = {
-  id: string;
-  title: string;
-  description: string;
-};
-
-interface Entry {
-  moduleName: string;
-  moduleDescription: string;
-  author: Author;
-  level: string;
-  language: string;
-  lessons: Lesson[];
-}
-
 export async function getStaticProps() {
-  const entry = await getContent("1JwFN6H62m8cgaZ2UnHkXj");
+  const res = await getContentByType("courseModule");
+  const entry = res.items[0];
 
   const { moduleName, moduleDescription, author, level, language } =
     entry.fields as any;
@@ -200,12 +187,13 @@ export async function getStaticProps() {
     );
   }
 
-  const modules = map(lessons, (lesson) => {
+  const modules = map(lessons, (lesson, index) => {
     if (!lesson) {
       throw new Error("Lesson is undefined");
     }
 
     return {
+      index,
       id: get(lesson, "sys.id"),
       title: get(lesson, "fields.lessonName"),
       description: get(lesson, "fields.lessonDescription"),
