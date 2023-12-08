@@ -112,6 +112,7 @@ const BottomNavbar = ({ current, prev, next, modules }: BottomNavbarProps) => {
                     px={4}
                     color={isCurrent ? "gray.700" : ""}
                     bg={isCurrent ? "green.300" : ""}
+                    fontWeight={isCurrent ? "semibold" : "normal"}
                     _hover={{
                       textDecor: "none",
                       bg: isCurrent ? "green.300" : "gray.600",
