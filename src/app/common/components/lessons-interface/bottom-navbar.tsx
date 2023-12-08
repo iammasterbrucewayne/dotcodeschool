@@ -21,12 +21,13 @@ import { useState } from "react";
 import { map } from "lodash";
 
 interface BottomNavbarProps {
+  current: number;
   prev?: number;
   next?: number;
   modules: any[];
 }
 
-const BottomNavbar = ({ prev, next, modules }: BottomNavbarProps) => {
+const BottomNavbar = ({ current, prev, next, modules }: BottomNavbarProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleDrawerOpen = () => {
@@ -99,19 +100,27 @@ const BottomNavbar = ({ prev, next, modules }: BottomNavbarProps) => {
             <DrawerCloseButton />
             <DrawerHeader>Lessons</DrawerHeader>
             <DrawerBody px={0}>
-              {map(modules, (module) => (
-                <Link
-                  key={module.id}
-                  display="block"
-                  href={`/courses/${module.lesson}`}
-                  w="full"
-                  py={2}
-                  px={4}
-                  _hover={{ textDecor: "none", bg: "gray.600" }}
-                >
-                  {module.lesson}. {module.title}
-                </Link>
-              ))}
+              {map(modules, (module) => {
+                const isCurrent = current === Number(module.lesson);
+                return (
+                  <Link
+                    key={module.id}
+                    display="block"
+                    href={`/courses/${module.lesson}`}
+                    w="full"
+                    py={2}
+                    px={4}
+                    color={isCurrent ? "gray.700" : ""}
+                    bg={isCurrent ? "green.300" : ""}
+                    _hover={{
+                      textDecor: "none",
+                      bg: isCurrent ? "green.300" : "gray.600",
+                    }}
+                  >
+                    {module.lesson}. {module.title}
+                  </Link>
+                );
+              })}
             </DrawerBody>
           </DrawerContent>
         </DrawerOverlay>

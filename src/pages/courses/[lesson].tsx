@@ -12,7 +12,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
-import { map, nth } from "lodash";
+import { isEmpty, map, nth } from "lodash";
 import { serialize } from "next-mdx-remote/serialize";
 import Editor from "@monaco-editor/react";
 
@@ -22,15 +22,22 @@ import Navbar from "@/app/common/components/navbar";
 import TerminalEmulator from "@/app/common/components/lessons-interface/terminal-emulator";
 import BottomNavbar from "@/app/common/components/lessons-interface/bottom-navbar";
 
-interface File {
+type File = {
   fileName: string;
   code: string;
   language: string;
+};
+
+interface Files {
+  source: File[];
+  template: File[];
+  solution: File[];
 }
 
 interface Props {
   mdxSource: MDXRemoteSerializeResult;
-  files: File[];
+  files: Files;
+  current: number;
   prev: number;
   next: number;
   modules: any[];
@@ -45,6 +52,7 @@ const MODE = MODES.EDITOR;
 export default function CourseModule({
   mdxSource,
   files,
+  current,
   prev,
   next,
   modules,
@@ -83,16 +91,23 @@ export default function CourseModule({
           </GridItem>
         </Grid>
       </Box>
-      <BottomNavbar prev={prev} next={next} modules={modules} />
+      <BottomNavbar
+        prev={prev}
+        next={next}
+        current={current}
+        modules={modules}
+      />
     </Box>
   );
 }
 
 interface EditorTabsProps {
-  files: File[];
+  files: Files;
 }
 
 function EditorTabs({ files }: EditorTabsProps) {
+  const { source, template, solution } = files;
+  const _files = !isEmpty(source) ? source : template;
   return (
     <Tabs
       variant="enclosed"
@@ -103,12 +118,30 @@ function EditorTabs({ files }: EditorTabsProps) {
       bg="#1e1e1e"
       rounded={8}
     >
-      <TabList>
-        {map(files, (file, i) => {
+      <TabList
+        overflowX="auto"
+        overflowY="hidden"
+        sx={{
+          "::-webkit-scrollbar": {
+            height: "1px",
+            borderRadius: "8px",
+          },
+          "::-webkit-scrollbar-thumb": {
+            height: "1px",
+            borderRadius: "8px",
+          },
+          ":hover::-webkit-scrollbar-thumb": { background: "gray.700" },
+        }}
+      >
+        {map(_files, (file, i) => {
           return (
             <Tab
               key={i}
               border="none"
+              color="gray.500"
+              _hover={{
+                bg: "whiteAlpha.200",
+              }}
               _selected={{
                 bg: "whiteAlpha.200",
                 color: "orange.200",
@@ -122,7 +155,7 @@ function EditorTabs({ files }: EditorTabsProps) {
         })}
       </TabList>
       <TabPanels h="90%" pt={2}>
-        {map(files, (file, i) => (
+        {map(_files, (file, i) => (
           <TabPanel key={i} h="100%" p={0}>
             <Editor
               height="100%"
@@ -139,15 +172,21 @@ function EditorTabs({ files }: EditorTabsProps) {
 
 async function fetchEntry(id: string) {
   const entry = await getContentById(id);
+
+  const files: any = entry.fields.files;
+
+  if (!files || typeof files !== "object") {
+    throw new Error("Failed to fetch the entry from Contentful");
+  }
+
   if (
-    !entry.fields.files ||
-    !Array.isArray(entry.fields.files) ||
-    entry.fields.files.length === 0
+    !(files.fields.source || files.fields.template || files.fields.solution)
   ) {
     throw new Error(
       "Failed to fetch the entry from Contentful or files array is null or empty"
     );
   }
+
   return entry;
 }
 
@@ -182,9 +221,17 @@ export async function getStaticProps({
 
   const entry: any = await fetchEntry(lessonModule?.id);
 
-  const files = await Promise.all(map(entry.fields.files, fetchFile)).catch(
+  const files = entry.fields.files;
+
+  const source = await Promise.all(map(files.fields.source, fetchFile)).catch(
     console.error
   );
+  const template = await Promise.all(
+    map(files.fields.template, fetchFile)
+  ).catch(console.error);
+  const solution = await Promise.all(
+    map(files.fields.solution, fetchFile)
+  ).catch(console.error);
 
   const lessonContent: any = entry.fields.lessonContent;
 
@@ -194,7 +241,14 @@ export async function getStaticProps({
   const next = parsedLesson < modules.length ? parsedLesson + 1 : null;
 
   return {
-    props: { mdxSource, files, prev, next, modules },
+    props: {
+      mdxSource,
+      files: { source, template, solution },
+      current: parsedLesson,
+      prev,
+      next,
+      modules,
+    },
   };
 }
 
