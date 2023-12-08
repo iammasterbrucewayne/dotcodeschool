@@ -16,6 +16,7 @@ import {
   HamburgerIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  CheckIcon,
 } from "@chakra-ui/icons";
 import { useState } from "react";
 import { map } from "lodash";
@@ -40,12 +41,12 @@ const BottomNavbar = ({ current, prev, next, modules }: BottomNavbarProps) => {
 
   return (
     <Box
-      position="absolute"
+      position="fixed"
       w="100%"
       bottom={0}
       left={0}
       py={4}
-      px={[0, 4]}
+      px={4}
       bg="gray.900"
     >
       <Flex justify="space-between" align="center">
@@ -83,8 +84,9 @@ const BottomNavbar = ({ current, prev, next, modules }: BottomNavbarProps) => {
               <ChevronRightIcon fontSize={24} />
             </Button>
           ) : (
-            <Button variant="solid" colorScheme="green" px={8} mr={4}>
-              Finish
+            <Button variant="solid" colorScheme="green" px={[4, 8]} mr={4} gap={2}>
+              <Text display={["none", "block"]}>Finish</Text>
+              <CheckIcon fontSize={16} />
             </Button>
           )}
         </Flex>
