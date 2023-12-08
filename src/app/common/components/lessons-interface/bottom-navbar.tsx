@@ -109,7 +109,7 @@ const BottomNavbar = ({ prev, next, modules }: BottomNavbarProps) => {
                   px={4}
                   _hover={{ textDecor: "none", bg: "gray.600" }}
                 >
-                  {module.title}
+                  {module.lesson}. {module.title}
                 </Link>
               ))}
             </DrawerBody>
