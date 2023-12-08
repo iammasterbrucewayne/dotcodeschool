@@ -121,6 +121,7 @@ function EditorTabs({ files }: EditorTabsProps) {
       <TabList
         overflowX="auto"
         overflowY="hidden"
+        gap={1}
         sx={{
           "::-webkit-scrollbar": {
             height: "1px",
