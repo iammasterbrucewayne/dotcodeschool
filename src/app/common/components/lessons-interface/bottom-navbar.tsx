@@ -26,9 +26,16 @@ interface BottomNavbarProps {
   prev?: number;
   next?: number;
   modules: any[];
+  checkAnswer?: () => void;
 }
 
-const BottomNavbar = ({ current, prev, next, modules }: BottomNavbarProps) => {
+const BottomNavbar = ({
+  current,
+  prev,
+  next,
+  modules,
+  checkAnswer,
+}: BottomNavbarProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const handleDrawerOpen = () => {
@@ -57,7 +64,11 @@ const BottomNavbar = ({ current, prev, next, modules }: BottomNavbarProps) => {
         />
 
         <Flex gap={2}>
-          <Button variant="outline">Check Answers</Button>
+          {checkAnswer && (
+            <Button variant="outline" onClick={checkAnswer}>
+              Check Answers
+            </Button>
+          )}
           {prev ? (
             <Button
               as={Link}
@@ -84,7 +95,13 @@ const BottomNavbar = ({ current, prev, next, modules }: BottomNavbarProps) => {
               <ChevronRightIcon fontSize={24} />
             </Button>
           ) : (
-            <Button variant="solid" colorScheme="green" px={[4, 8]} mr={4} gap={2}>
+            <Button
+              variant="solid"
+              colorScheme="green"
+              px={[4, 8]}
+              mr={4}
+              gap={2}
+            >
               <Text display={["none", "block"]}>Finish</Text>
               <CheckIcon fontSize={16} />
             </Button>

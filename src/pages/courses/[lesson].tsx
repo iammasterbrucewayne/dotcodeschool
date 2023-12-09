@@ -12,15 +12,17 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
-import { isEmpty, map, nth } from "lodash";
+import { filter, isEmpty, map, nth } from "lodash";
 import { serialize } from "next-mdx-remote/serialize";
 import Editor from "@monaco-editor/react";
+import stripComments from "strip-comments";
 
 import { getContentById } from "../api/get-content";
 import MDXComponents from "@/app/common/components/lessons-interface/mdx-components";
 import Navbar from "@/app/common/components/navbar";
 import TerminalEmulator from "@/app/common/components/lessons-interface/terminal-emulator";
 import BottomNavbar from "@/app/common/components/lessons-interface/bottom-navbar";
+import { useState } from "react";
 
 type File = {
   fileName: string;
@@ -57,6 +59,30 @@ export default function CourseModule({
   next,
   modules,
 }: Props) {
+  const { source, template, solution } = files;
+  const rawFiles = !isEmpty(source) ? source : template;
+  const _files = filter(rawFiles, (file) => !file.fileName.endsWith(".diff"));
+  const [editorContent, setEditorContent] = useState(_files);
+  const checkAnswer = () => {
+    const isCorrect = _files.every((file, index) => {
+      if (file.fileName.endsWith(".diff")) return true;
+      const solutionFile = solution[index];
+      // Remove comments and whitespace
+      const fileContent = stripComments(file.code).replace(/\s+/g, " ").trim();
+
+      const solutionContent = stripComments(solutionFile.code)
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return fileContent === solutionContent;
+    });
+
+    if (isCorrect) {
+      alert("Correct!");
+    } else {
+      alert("Incorrect!");
+    }
+  };
   return (
     <Box h="100vh" position="relative">
       <Box h="95vh" px={[6, 12]} mx="auto">
@@ -84,7 +110,10 @@ export default function CourseModule({
           </GridItem>
           <GridItem colSpan={[12, 7]} h="80vh" overflow="clip">
             {MODE === MODES.EDITOR ? (
-              <EditorTabs files={files} />
+              <EditorTabs
+                editorContent={editorContent}
+                setEditorContent={setEditorContent}
+              />
             ) : (
               <TerminalEmulator h="100%" />
             )}
@@ -96,18 +125,18 @@ export default function CourseModule({
         next={next}
         current={current}
         modules={modules}
+        {...(!isEmpty(solution) && { checkAnswer })}
       />
     </Box>
   );
 }
 
 interface EditorTabsProps {
-  files: Files;
+  editorContent: File[];
+  setEditorContent: (editorContent: File[]) => void;
 }
 
-function EditorTabs({ files }: EditorTabsProps) {
-  const { source, template, solution } = files;
-  const _files = !isEmpty(source) ? source : template;
+function EditorTabs({ editorContent, setEditorContent }: EditorTabsProps) {
   return (
     <Tabs
       variant="enclosed"
@@ -134,7 +163,7 @@ function EditorTabs({ files }: EditorTabsProps) {
           ":hover::-webkit-scrollbar-thumb": { background: "gray.700" },
         }}
       >
-        {map(_files, (file, i) => {
+        {map(editorContent, (file, i) => {
           return (
             <Tab
               key={i}
@@ -156,13 +185,18 @@ function EditorTabs({ files }: EditorTabsProps) {
         })}
       </TabList>
       <TabPanels h="90%" pt={2}>
-        {map(_files, (file, i) => (
+        {map(editorContent, (file, i) => (
           <TabPanel key={i} h="100%" p={0}>
             <Editor
               height="100%"
               theme="vs-dark"
               defaultLanguage={file.language || "rust"}
-              defaultValue={file.code || "// some comment"}
+              defaultValue={file.code || "// placeholder"}
+              onChange={(value) => {
+                const newEditorContent = [...editorContent];
+                newEditorContent[i].code = value?.toString() || "";
+                setEditorContent(newEditorContent);
+              }}
             />
           </TabPanel>
         ))}
