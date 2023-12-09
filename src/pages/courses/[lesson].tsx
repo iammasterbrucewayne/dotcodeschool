@@ -10,9 +10,10 @@ import {
   TabPanels,
   Tabs,
   Text,
+  useToast,
 } from "@chakra-ui/react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
-import { filter, find, isEmpty, map, matches, nth } from "lodash";
+import _, { filter, find, isEmpty, map, matches, nth } from "lodash";
 import { serialize } from "next-mdx-remote/serialize";
 import Editor, { DiffEditor } from "@monaco-editor/react";
 import stripComments from "strip-comments";
@@ -22,7 +23,7 @@ import MDXComponents from "@/app/common/components/lessons-interface/mdx-compone
 import Navbar from "@/app/common/components/navbar";
 import TerminalEmulator from "@/app/common/components/lessons-interface/terminal-emulator";
 import BottomNavbar from "@/app/common/components/lessons-interface/bottom-navbar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type File = {
   fileName: string;
@@ -63,14 +64,17 @@ export default function CourseModule({
   const rawFiles = !isEmpty(source) ? source : template;
   const _files = filter(rawFiles, (file) => !file.fileName.endsWith(".diff"));
 
+  const toast = useToast();
+
   const [editorContent, setEditorContent] = useState(_files);
   const [isCorrect, setIsCorrect] = useState(false);
   const [incorrectFiles, setIncorrectFiles] = useState<File[]>([]);
   const [checkedAnswer, setCheckedAnswer] = useState(false);
+  const [showHints, setShowHints] = useState(false);
 
   const checkAnswer = () => {
     const incorrect: File[] = [];
-    const _isCorrect = map(_files, (file, index) => {
+    const _isCorrectArr = map(_files, (file, index) => {
       if (file.fileName.endsWith(".diff")) return true;
       const solutionFile = solution[index];
       // Remove comments and whitespace
@@ -88,10 +92,36 @@ export default function CourseModule({
       }
       return isFileCorrect;
     });
+    const _isCorrect = _isCorrectArr.every((isCorrect) => isCorrect);
+    if (!_isCorrect) {
+      setShowHints(true);
+      toast.closeAll();
+      toast({
+        title: "Incorrect!",
+        description: "Please try again",
+        status: "error",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
     setIncorrectFiles(incorrect);
-    setIsCorrect(_isCorrect.every((isCorrect) => isCorrect));
+    setIsCorrect(_isCorrect);
     setCheckedAnswer(true);
   };
+  useEffect(() => {
+    if (checkedAnswer) {
+      if (isCorrect) {
+        toast.closeAll();
+        toast({
+          title: "Correct!",
+          description: "You have passed the lesson",
+          status: "success",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
+  }, [checkedAnswer, isCorrect, toast]);
   return (
     <Box h="100vh" position="relative">
       <Box h="95vh" px={[6, 12]} mx="auto">
@@ -122,7 +152,7 @@ export default function CourseModule({
               <EditorTabs
                 solution={solution}
                 incorrectFiles={incorrectFiles}
-                showHints={checkedAnswer && !isCorrect}
+                showHints={showHints}
                 editorContent={editorContent}
                 setEditorContent={setEditorContent}
               />
@@ -137,6 +167,7 @@ export default function CourseModule({
         next={next}
         current={current}
         modules={modules}
+        isCorrect={isCorrect}
         {...(!isEmpty(solution) && { checkAnswer })}
       />
     </Box>

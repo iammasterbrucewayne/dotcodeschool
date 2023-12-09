@@ -22,6 +22,7 @@ import { useState } from "react";
 import { map } from "lodash";
 
 interface BottomNavbarProps {
+  isCorrect?: boolean;
   current: number;
   prev?: number;
   next?: number;
@@ -30,6 +31,7 @@ interface BottomNavbarProps {
 }
 
 const BottomNavbar = ({
+  isCorrect,
   current,
   prev,
   next,
@@ -64,11 +66,22 @@ const BottomNavbar = ({
         />
 
         <Flex gap={2}>
-          {checkAnswer && (
-            <Button variant="outline" onClick={checkAnswer}>
-              Check Answers
-            </Button>
-          )}
+          {checkAnswer &&
+            (isCorrect ? (
+              <Button
+                variant="ghost"
+                colorScheme="green"
+                cursor="default"
+                _hover={{ bg: "none" }}
+              >
+                <CheckIcon fontSize={16} mr={2} />
+                Correct
+              </Button>
+            ) : (
+              <Button variant="outline" onClick={checkAnswer}>
+                Check Answers
+              </Button>
+            ))}
           {prev ? (
             <Button
               as={Link}
