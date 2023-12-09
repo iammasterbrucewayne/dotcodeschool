@@ -248,7 +248,7 @@ function EditorTabs({
       </TabList>
       <TabPanels h={["80vh", "70vh"]} pt={2}>
         {map(editorContent, (file, i) => (
-          <TabPanel key={i} h="100%" p={0} pb={6}>
+          <TabPanel key={i} h="100%" p={0} pb={[6, 0]}>
             <Editor
               height={showHints ? "70%" : "100%"}
               theme="vs-dark"
