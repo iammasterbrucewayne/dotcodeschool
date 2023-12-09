@@ -197,7 +197,7 @@ function EditorTabs({
     <Tabs
       variant="enclosed"
       p={1}
-      h="full"
+      h={"80vh"}
       border="1px solid"
       borderColor="whiteAlpha.200"
       bg="#1e1e1e"
@@ -246,9 +246,9 @@ function EditorTabs({
           );
         })}
       </TabList>
-      <TabPanels h={["80vh", "70vh"]} pt={2}>
+      <TabPanels h="full" pt={2}>
         {map(editorContent, (file, i) => (
-          <TabPanel key={i} h="100%" p={0} pb={[6, 0]}>
+          <TabPanel key={i} h="100%" p={0} pb={showHints ? 16 : 10}>
             <Editor
               height={showHints ? "70%" : "100%"}
               theme="vs-dark"
