@@ -9,12 +9,12 @@ import {
   TabPanel,
   TabPanels,
   Tabs,
-  VStack,
+  Text,
 } from "@chakra-ui/react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
-import { filter, isEmpty, map, nth } from "lodash";
+import { filter, find, isEmpty, map, matches, nth } from "lodash";
 import { serialize } from "next-mdx-remote/serialize";
-import Editor from "@monaco-editor/react";
+import Editor, { DiffEditor } from "@monaco-editor/react";
 import stripComments from "strip-comments";
 
 import { getContentById } from "../api/get-content";
@@ -62,26 +62,35 @@ export default function CourseModule({
   const { source, template, solution } = files;
   const rawFiles = !isEmpty(source) ? source : template;
   const _files = filter(rawFiles, (file) => !file.fileName.endsWith(".diff"));
+
   const [editorContent, setEditorContent] = useState(_files);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const [incorrectFiles, setIncorrectFiles] = useState<File[]>([]);
+  const [checkedAnswer, setCheckedAnswer] = useState(false);
+
   const checkAnswer = () => {
-    const isCorrect = _files.every((file, index) => {
+    const incorrect: File[] = [];
+    const _isCorrect = map(_files, (file, index) => {
       if (file.fileName.endsWith(".diff")) return true;
       const solutionFile = solution[index];
       // Remove comments and whitespace
-      const fileContent = stripComments(file.code).replace(/\s+/g, " ").trim();
+      const fileCodeWithoutComments = stripComments(file.code);
+      const fileContent = fileCodeWithoutComments.replace(/\s+/g, " ").trim();
 
-      const solutionContent = stripComments(solutionFile.code)
+      const solutionCodeWithoutComments = stripComments(solutionFile.code);
+      const solutionContent = solutionCodeWithoutComments
         .replace(/\s+/g, " ")
         .trim();
 
-      return fileContent === solutionContent;
+      const isFileCorrect = fileContent === solutionContent;
+      if (!isFileCorrect) {
+        incorrect.push(file);
+      }
+      return isFileCorrect;
     });
-
-    if (isCorrect) {
-      alert("Correct!");
-    } else {
-      alert("Incorrect!");
-    }
+    setIncorrectFiles(incorrect);
+    setIsCorrect(_isCorrect.every((isCorrect) => isCorrect));
+    setCheckedAnswer(true);
   };
   return (
     <Box h="100vh" position="relative">
@@ -108,9 +117,12 @@ export default function CourseModule({
           >
             <MDXRemote {...mdxSource} components={MDXComponents} />
           </GridItem>
-          <GridItem colSpan={[12, 7]} h="80vh" overflow="clip">
+          <GridItem colSpan={[12, 7]} overflow="clip">
             {MODE === MODES.EDITOR ? (
               <EditorTabs
+                solution={solution}
+                incorrectFiles={incorrectFiles}
+                showHints={checkedAnswer && !isCorrect}
                 editorContent={editorContent}
                 setEditorContent={setEditorContent}
               />
@@ -132,16 +144,25 @@ export default function CourseModule({
 }
 
 interface EditorTabsProps {
+  showHints: boolean;
+  incorrectFiles: File[];
+  solution: File[];
   editorContent: File[];
   setEditorContent: (editorContent: File[]) => void;
 }
 
-function EditorTabs({ editorContent, setEditorContent }: EditorTabsProps) {
+function EditorTabs({
+  showHints,
+  incorrectFiles,
+  solution,
+  editorContent,
+  setEditorContent,
+}: EditorTabsProps) {
   return (
     <Tabs
       variant="enclosed"
       p={1}
-      h="100%"
+      h="full"
       border="1px solid"
       borderColor="whiteAlpha.200"
       bg="#1e1e1e"
@@ -164,19 +185,25 @@ function EditorTabs({ editorContent, setEditorContent }: EditorTabsProps) {
         }}
       >
         {map(editorContent, (file, i) => {
+          const incorrectColor = find(
+            incorrectFiles,
+            matches({ fileName: file.fileName })
+          )
+            ? "red.300"
+            : null;
           return (
             <Tab
               key={i}
               border="none"
-              color="gray.500"
+              color={incorrectColor ? incorrectColor : "whiteAlpha.600"}
               _hover={{
                 bg: "whiteAlpha.200",
               }}
               _selected={{
                 bg: "whiteAlpha.200",
-                color: "orange.200",
+                color: incorrectColor ? incorrectColor : "orange.200",
                 borderBottom: "2px solid",
-                borderColor: "orange.200",
+                borderColor: incorrectColor ? incorrectColor : "orange.200",
               }}
             >
               {file.fileName}
@@ -188,7 +215,7 @@ function EditorTabs({ editorContent, setEditorContent }: EditorTabsProps) {
         {map(editorContent, (file, i) => (
           <TabPanel key={i} h="100%" p={0}>
             <Editor
-              height="100%"
+              height={showHints ? "70%" : "100%"}
               theme="vs-dark"
               defaultLanguage={file.language || "rust"}
               defaultValue={file.code || "// placeholder"}
@@ -198,6 +225,33 @@ function EditorTabs({ editorContent, setEditorContent }: EditorTabsProps) {
                 setEditorContent(newEditorContent);
               }}
             />
+            {showHints && (
+              <>
+                <Box borderBottom="1px solid" borderColor="whiteAlpha.200">
+                  <Text
+                    display="inline"
+                    fontSize="sm"
+                    color="gray.400"
+                    border="1px solid"
+                    borderColor="whiteAlpha.200"
+                    borderTopRadius={6}
+                    px={4}
+                    py={1}
+                  >
+                    Hints
+                  </Text>
+                </Box>
+                <DiffEditor
+                  height="30%"
+                  theme="vs-dark"
+                  original={
+                    showHints ? stripComments(editorContent[i]?.code) : ""
+                  }
+                  modified={showHints ? stripComments(solution[i]?.code) : ""}
+                  options={{ readOnly: true, comments: false }}
+                />
+              </>
+            )}
           </TabPanel>
         ))}
       </TabPanels>
