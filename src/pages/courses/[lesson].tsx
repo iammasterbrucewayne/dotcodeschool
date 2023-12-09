@@ -246,7 +246,7 @@ function EditorTabs({
           );
         })}
       </TabList>
-      <TabPanels h="80vh" pt={2}>
+      <TabPanels h={["80vh", "70vh"]} pt={2}>
         {map(editorContent, (file, i) => (
           <TabPanel key={i} h="100%" p={0} pb={6}>
             <Editor
