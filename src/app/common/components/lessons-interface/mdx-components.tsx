@@ -110,7 +110,7 @@ const MDXComponents = {
   li: (props: any) => <Box as="li" pb={4} {...props} />,
 
   code: (props: any) => (
-    <Code colorScheme="orange" variant="outline" {...props} />
+    <Code colorScheme="orange" variant="subtle" {...props} />
   ),
 
   pre: (props: any) => <PreComponent {...props} />,
