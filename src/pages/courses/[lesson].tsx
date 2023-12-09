@@ -61,6 +61,7 @@ export default function CourseModule({
   modules,
 }: Props) {
   const { source, template, solution } = files;
+  const readOnly = isEmpty(solution);
   const rawFiles = !isEmpty(source) ? source : template;
   const _files = filter(rawFiles, (file) => !file.fileName.endsWith(".diff"));
 
@@ -155,6 +156,7 @@ export default function CourseModule({
                 showHints={showHints}
                 editorContent={editorContent}
                 setEditorContent={setEditorContent}
+                readOnly={readOnly}
               />
             ) : (
               <TerminalEmulator h="100%" />
@@ -176,6 +178,7 @@ export default function CourseModule({
 
 interface EditorTabsProps {
   showHints: boolean;
+  readOnly?: boolean;
   incorrectFiles: File[];
   solution: File[];
   editorContent: File[];
@@ -184,6 +187,7 @@ interface EditorTabsProps {
 
 function EditorTabs({
   showHints,
+  readOnly,
   incorrectFiles,
   solution,
   editorContent,
@@ -250,6 +254,7 @@ function EditorTabs({
               theme="vs-dark"
               defaultLanguage={file.language || "rust"}
               defaultValue={file.code || "// placeholder"}
+              options={{ readOnly: readOnly }}
               onChange={(value) => {
                 const newEditorContent = [...editorContent];
                 newEditorContent[i].code = value?.toString() || "";
