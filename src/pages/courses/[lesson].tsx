@@ -127,7 +127,7 @@ export default function CourseModule({
     <Box h="100vh" position="relative">
       <Box h="95vh" px={[6, 12]} mx="auto">
         <Navbar cta={false} />
-        <Grid templateColumns="repeat(12, 1fr)" gap={1}>
+        <Grid templateColumns="repeat(12, 1fr)" gap={1} pb={24}>
           <GridItem
             colSpan={[12, 5]}
             h={["fit-content", "80vh"]}
@@ -246,9 +246,9 @@ function EditorTabs({
           );
         })}
       </TabList>
-      <TabPanels h="90%" pt={2}>
+      <TabPanels h="80vh" pt={2}>
         {map(editorContent, (file, i) => (
-          <TabPanel key={i} h="100%" p={0}>
+          <TabPanel key={i} h="100%" p={0} pb={6}>
             <Editor
               height={showHints ? "70%" : "100%"}
               theme="vs-dark"
