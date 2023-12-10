@@ -21,22 +21,30 @@ const SuccessPage: React.FC = () => {
   const [textOpacity, setTextOpacity] = useState(0);
 
   useEffect(() => {
-    const audio = new Audio("/static/successSound.mp3");
-    audio.oncanplaythrough = () => {
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    if (!isMobile) {
+      const audio = new Audio("/static/successSound.mp3");
+      audio.oncanplaythrough = () => {
+        if (lottieContainerRef.current) {
+          lottieContainerRef.current.style.opacity = "1";
+        }
+        audio.play();
+      };
+      setTimeout(() => {
+        setTextOpacity(1);
+      }, 1500);
+    } else {
       if (lottieContainerRef.current) {
         lottieContainerRef.current.style.opacity = "1";
       }
-      audio.play();
-    };
-    setTimeout(() => {
       setTextOpacity(1);
-    }, 1500);
+    }
   }, []);
 
   return (
     <Box textAlign="center" px={[6, 12]} pb={24}>
       <Navbar cta={false} />
-      <VStack maxW="4xl" mx="auto" mt={[0, 12]}>
+      <VStack maxW="4xl" mx="auto" mt={[-10, 12]}>
         <Box opacity={0} ref={lottieContainerRef} transition="opacity 6s">
           <Lottie
             options={{
