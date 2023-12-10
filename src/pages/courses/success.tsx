@@ -34,7 +34,7 @@ const SuccessPage: React.FC = () => {
   }, []);
 
   return (
-    <Box textAlign="center" px={12} pb={24}>
+    <Box textAlign="center" px={[6, 12]} pb={24}>
       <Navbar cta={false} />
       <VStack maxW="4xl" mx="auto" mt={[0, 12]}>
         <Box opacity={0} ref={lottieContainerRef} transition="opacity 6s">
@@ -126,7 +126,7 @@ const SuccessPage: React.FC = () => {
               <FaDiscord />
             </IconButton>
           </ButtonGroup>
-          <Text fontStyle="italic" fontSize="sm" my={2} color="gray.400">
+          <Text fontStyle="italic" fontSize="sm" mt={8} mb={2} color="gray.400">
             We have more content coming soon... Stay tuned!
           </Text>
         </VStack>
