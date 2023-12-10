@@ -75,8 +75,8 @@ const SuccessPage: React.FC = () => {
           maxW="lg"
         >
           Congratulations! You have successfully completed the Rust State
-          Machine course. You're officially one step closer to building your own
-          blockchain on Polkadot.
+          Machine course. You&apos;re officially one step closer to building
+          your own blockchain on Polkadot.
         </Text>
         <VStack
           opacity={textOpacity}
