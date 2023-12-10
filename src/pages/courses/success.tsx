@@ -57,16 +57,6 @@ const SuccessPage: React.FC = () => {
         >
           Level 1: Apprentice of the Rusty State
         </Text>
-        {/* <Heading
-          as="h1"
-          size="2xl"
-          fontFamily="fantasy"
-          fontWeight="black"
-          my={4}
-        >
-          Congratulations! You have successfully completed the Rust State
-          Machine course.
-        </Heading> */}
         <Text
           fontSize="lg"
           opacity={textOpacity}
