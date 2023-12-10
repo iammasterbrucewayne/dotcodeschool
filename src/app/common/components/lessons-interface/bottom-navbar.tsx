@@ -109,11 +109,14 @@ const BottomNavbar = ({
             </Button>
           ) : (
             <Button
+              as={Link}
               variant="solid"
               colorScheme="green"
               px={[4, 8]}
               mr={4}
               gap={2}
+              href="/courses/success"
+              _hover={{ textDecor: "none" }}
             >
               <Text display={["none", "block"]}>Finish</Text>
               <CheckIcon fontSize={16} />
