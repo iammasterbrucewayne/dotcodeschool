@@ -21,7 +21,9 @@ import {
   HStack,
 } from "@chakra-ui/react";
 import { get, map, size } from "lodash";
-import { getContentByType } from "../api/get-content";
+import { getContentByType } from "@/pages/api/get-content";
+import { createContext } from "react";
+import exp from "constants";
 
 type Module = {
   id: string;
@@ -33,9 +35,10 @@ type Module = {
 
 interface ModuleProps {
   module: Module;
+  slug: string;
 }
 
-const Module = ({ module }: ModuleProps) => {
+const Module = ({ module, slug }: ModuleProps) => {
   const { index, title, description, progress = 0 } = module;
 
   return (
@@ -64,7 +67,11 @@ const Module = ({ module }: ModuleProps) => {
       </AccordionButton>
       <AccordionPanel pb={12} w="90%" pt={0}>
         <Text>{description}</Text>
-        <PrimaryButton as="a" href={`/courses/${index + 1}`} mt={12}>
+        <PrimaryButton
+          as="a"
+          href={`/courses/${slug}/lesson/${index + 1}/chapter/1`}
+          mt={12}
+        >
           Start Lesson
         </PrimaryButton>
       </AccordionPanel>
@@ -112,6 +119,7 @@ type Author = {
 };
 
 interface CoursePageProps {
+  slug: string;
   title: string;
   author: Author;
   description: string;
@@ -120,6 +128,7 @@ interface CoursePageProps {
 }
 
 const CoursePage = ({
+  slug,
   title,
   author,
   description,
@@ -127,45 +136,51 @@ const CoursePage = ({
   tags,
 }: CoursePageProps) => {
   return (
-    <Box maxW="6xl" mx="auto" px={[4, 12]}>
-      <Navbar cta={false} />
-      <Link href="/" color="green.500" fontSize="5xl">
-        <ArrowBackIcon />
-      </Link>
-      <Heading as="h1" size="xl" fontWeight="800" my={4}>
-        {title}
-      </Heading>
-      <Text>
-        Written by{" "}
-        <Link color="green.300" href={author.url} isExternal>
-          {author.name}
+      <Box maxW="6xl" mx="auto" px={[4, 12]}>
+        <Navbar cta={false} />
+        <Link href="/" color="green.500" fontSize="5xl">
+          <ArrowBackIcon />
         </Link>
-      </Text>
-      <Text my={8}>{description}</Text>
-      {map(tags, (tag, key) => (
-        <Tag key={key} mr={2} mb={2}>
-          {tag}
-        </Tag>
-      ))}
-      <ModuleList modules={modules} />
-      <Heading as="h2" size="lg" fontWeight="800" my={8}>
-        Course Content
-      </Heading>
-      <Text mt={4} mb={8} color="gray.400" fontWeight="500">
-        {size(modules)} lessons
-      </Text>
-      <Accordion allowToggle>
-        {modules.map((module, index) => (
-          <Module key={index} module={module} />
+        <Heading as="h1" size="xl" fontWeight="800" my={4}>
+          {title}
+        </Heading>
+        <Text>
+          Written by{" "}
+          <Link color="green.300" href={author.url} isExternal>
+            {author.name}
+          </Link>
+        </Text>
+        <Text my={8}>{description}</Text>
+        {map(tags, (tag, key) => (
+          <Tag key={key} mr={2} mb={2}>
+            {tag}
+          </Tag>
         ))}
-      </Accordion>
-    </Box>
+        <ModuleList modules={modules} />
+        <Heading as="h2" size="lg" fontWeight="800" my={8}>
+          Course Content
+        </Heading>
+        <Text mt={4} mb={8} color="gray.400" fontWeight="500">
+          {size(modules)} lessons
+        </Text>
+        <Accordion allowToggle>
+          {modules.map((module, index) => (
+            <Module key={index} module={module} slug={slug} />
+          ))}
+        </Accordion>
+      </Box>
   );
 };
 
 export default CoursePage;
 
-export async function getStaticProps() {
+export async function getStaticProps({
+  params,
+}: {
+  params: {
+    course: string;
+  };
+}) {
   const res = await getContentByType("courseModule");
   const entry = res.items[0];
 
@@ -179,15 +194,15 @@ export async function getStaticProps() {
   }
 
   const { name, url }: Author = authorFields;
-  const lessons = entry.fields.lessons;
+  const sections = entry.fields.sections;
 
-  if (!lessons || !Array.isArray(lessons) || lessons.length === 0) {
+  if (!sections || !Array.isArray(sections) || sections.length === 0) {
     throw new Error(
-      "Failed to fetch the entry from Contentful or lessons array is null or empty"
+      "Failed to fetch the entry from Contentful or sections array is null or empty"
     );
   }
 
-  const modules = map(lessons, (lesson, index) => {
+  const modules = map(sections, (lesson, index) => {
     if (!lesson) {
       throw new Error("Lesson is undefined");
     }
@@ -195,21 +210,36 @@ export async function getStaticProps() {
     return {
       index,
       id: get(lesson, "sys.id"),
-      title: get(lesson, "fields.lessonName"),
-      description: get(lesson, "fields.lessonDescription"),
+      title: get(lesson, "fields.title"),
+      description: get(lesson, "fields.description"),
     };
   });
 
   return {
     props: {
+      slug: params.course,
       title: moduleName,
       author: {
         name,
         url,
       },
       description: moduleDescription,
-      modules: modules,
+      modules,
       tags: { language, level },
     },
+  };
+}
+
+export async function getStaticPaths() {
+  const res = await getContentByType("courseModule");
+  const paths = res.items.map((item: any) => ({
+    params: {
+      course: item.fields.moduleName.replace(/\s/g, "-").toLowerCase(),
+    },
+  }));
+
+  return {
+    paths,
+    fallback: false,
   };
 }

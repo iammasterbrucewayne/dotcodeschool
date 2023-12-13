@@ -13,12 +13,20 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { MDXRemote, MDXRemoteSerializeResult } from "next-mdx-remote";
-import _, { filter, find, isEmpty, map, matches, nth } from "lodash";
+import _, {
+  filter,
+  find,
+  flatMapDeep,
+  isEmpty,
+  map,
+  matches,
+  nth,
+} from "lodash";
 import { serialize } from "next-mdx-remote/serialize";
 import Editor, { DiffEditor } from "@monaco-editor/react";
 import stripComments from "strip-comments";
 
-import { getContentById } from "../api/get-content";
+import { getContentById, getContentByType } from "@/pages/api/get-content";
 import MDXComponents from "@/app/common/components/lessons-interface/mdx-components";
 import Navbar from "@/app/common/components/navbar";
 import TerminalEmulator from "@/app/common/components/lessons-interface/terminal-emulator";
@@ -43,7 +51,7 @@ interface Props {
   current: number;
   prev: number;
   next: number;
-  modules: any[];
+  chapters: any[];
 }
 
 const MODES = {
@@ -58,9 +66,10 @@ export default function CourseModule({
   current,
   prev,
   next,
-  modules,
+  chapters,
 }: Props) {
   const { source, template, solution } = files;
+
   const readOnly = isEmpty(solution);
   const rawFiles = !isEmpty(source) ? source : template;
   const _files = filter(rawFiles, (file) => !file.fileName.endsWith(".diff"));
@@ -168,7 +177,7 @@ export default function CourseModule({
         prev={prev}
         next={next}
         current={current}
-        modules={modules}
+        chapters={chapters}
         isCorrect={isCorrect}
         {...(!isEmpty(solution) && { checkAnswer })}
       />
@@ -297,19 +306,8 @@ function EditorTabs({
 
 async function fetchEntry(id: string) {
   const entry = await getContentById(id);
-
-  const files: any = entry.fields.files;
-
-  if (!files || typeof files !== "object") {
-    throw new Error("Failed to fetch the entry from Contentful");
-  }
-
-  if (
-    !(files.fields.source || files.fields.template || files.fields.solution)
-  ) {
-    throw new Error(
-      "Failed to fetch the entry from Contentful or files array is null or empty"
-    );
+  if (!entry) {
+    throw new Error(`Entry with id ${id} not found`);
   }
 
   return entry;
@@ -334,17 +332,32 @@ async function fetchFile(file: any) {
 }
 
 export async function getStaticProps({
-  params: { lesson },
+  params,
 }: {
-  params: { lesson: string };
+  params: { course: string; lesson: string; chapter: string };
 }) {
+  const { course, lesson, chapter } = params;
   const parsedLesson = Number(lesson);
-  const courseEntry = await getContentById("1JwFN6H62m8cgaZ2UnHkXj");
-  const lessons = getLessons(courseEntry);
-  const modules = mapLessonsToModules(lessons);
-  const lessonModule = nth(modules, parsedLesson - 1);
+  const parsedChapter = Number(chapter);
+  const res = await getContentByType("courseModule");
+  const _course = find(res.items, (item) => {
+    const moduleName = item.fields.moduleName;
+    if (!moduleName || typeof moduleName !== "string") {
+      throw new Error("Module name is undefined");
+    }
+    return moduleName.replace(/\s/g, "-").toLowerCase() === course;
+  });
+  const modules: any = _course?.fields.sections;
 
-  const entry: any = await fetchEntry(lessonModule?.id);
+  const lessonModule: any = nth(modules, parsedLesson - 1);
+
+  const chapters = lessonModule?.fields.lessons;
+
+  const entries: any = await Promise.all(
+    map(chapters, (chapter) => fetchEntry(chapter.sys.id))
+  ).catch(console.error);
+
+  const entry = entries[parsedChapter - 1];
 
   const files = entry.fields.files;
 
@@ -362,59 +375,94 @@ export async function getStaticProps({
 
   const mdxSource = await serialize(lessonContent);
 
-  const prev = parsedLesson > 1 ? parsedLesson - 1 : null;
-  const next = parsedLesson < modules.length ? parsedLesson + 1 : null;
+  const current = `${course}/lesson/${parsedLesson}/chapter/${parsedChapter}`;
+
+  const prev =
+    parsedChapter > 1
+      ? `${course}/lesson/${parsedLesson}/chapter/${parsedChapter - 1}`
+      : null;
+  const next =
+    parsedChapter < chapters.length
+      ? `${course}/lesson/${parsedLesson}/chapter/${parsedChapter + 1}`
+      : null;
+
+  const _chapters = entries.map((entry: any, index: number) => ({
+    id: entry.sys.id,
+    index,
+    lesson: `${course}/lesson/${parsedLesson}/chapter/${index + 1}`,
+    title: entry.fields.lessonName,
+  }));
 
   return {
     props: {
       mdxSource,
       files: { source, template, solution },
-      current: parsedLesson,
+      current,
       prev,
       next,
-      modules,
+      chapters: _chapters,
     },
   };
 }
 
 // Validates and returns the lessons array
-function getLessons(entry: any) {
-  const lessons = entry.fields.lessons;
-  if (!lessons || !Array.isArray(lessons) || lessons.length === 0) {
+function getSections(entry: any) {
+  const sections = entry.fields.sections;
+  if (!sections || !Array.isArray(sections) || sections.length === 0) {
     throw new Error(
-      "Failed to fetch the entry from Contentful or lessons array is null or empty"
+      "Failed to fetch the entry from Contentful or sections array is null or empty"
     );
   }
-  return lessons;
+  return sections;
 }
 
 // Maps lessons to modules
-function mapLessonsToModules(lessons: any[]) {
-  return lessons.map((lesson, index) => {
-    if (!lesson) {
+function mapSectionsToLessons(sections: any[]) {
+  return sections.map((section, index) => {
+    if (!section) {
       throw new Error("Lesson is undefined");
     }
 
     return {
-      lesson: `${index + 1}`,
-      id: lesson.sys.id,
-      title: lesson.fields.lessonName,
-      description: lesson.fields.lessonDescription,
+      section: `${index + 1}`,
+      id: section.sys.id,
+      title: section.fields.title,
+      description: section.fields.description,
     };
   });
 }
 
 export async function getStaticPaths() {
-  const entry = await getContentById("1JwFN6H62m8cgaZ2UnHkXj");
-  const lessons = getLessons(entry);
-  const modules = mapLessonsToModules(lessons);
+  const courseModules = await getContentByType("courseModule");
+  const paths = await Promise.all(
+    courseModules.items.map(async (item: any) => {
+      const sections = getSections(item);
+      const modules = mapSectionsToLessons(sections);
 
-  const paths = map(modules, (module) => ({
-    params: { lesson: module.lesson },
-  }));
+      return Promise.all(
+        modules.map(async (module) => {
+          const chapters = await getContentById(module.id);
+          const _chapters: any = chapters.fields.lessons;
+          return map(_chapters, (chapter, index) => {
+            return {
+              params: {
+                course: item.fields.moduleName
+                  .replace(/\s/g, "-")
+                  .toLowerCase(),
+                lesson: module.section,
+                chapter: `${index + 1}`,
+              },
+            };
+          });
+        })
+      );
+    })
+  );
+
+  const flattenedPaths = flatMapDeep(paths);
 
   return {
-    paths,
+    paths: flattenedPaths,
     fallback: false,
   };
 }

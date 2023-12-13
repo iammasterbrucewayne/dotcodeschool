@@ -23,10 +23,10 @@ import { map } from "lodash";
 
 interface BottomNavbarProps {
   isCorrect?: boolean;
-  current: number;
-  prev?: number;
-  next?: number;
-  modules: any[];
+  current: string;
+  prev?: string;
+  next?: string;
+  chapters: any[];
   checkAnswer?: () => void;
 }
 
@@ -35,7 +35,7 @@ const BottomNavbar = ({
   current,
   prev,
   next,
-  modules,
+  chapters,
   checkAnswer,
 }: BottomNavbarProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -135,13 +135,13 @@ const BottomNavbar = ({
             <DrawerCloseButton />
             <DrawerHeader>Lessons</DrawerHeader>
             <DrawerBody px={0}>
-              {map(modules, (module) => {
-                const isCurrent = current === Number(module.lesson);
+              {map(chapters, (chapter) => {
+                const isCurrent = current === chapter.lesson;
                 return (
                   <Link
-                    key={module.id}
+                    key={chapter.id}
                     display="block"
-                    href={`/courses/${module.lesson}`}
+                    href={`/courses/${chapter.lesson}`}
                     w="full"
                     py={2}
                     px={4}
@@ -153,7 +153,7 @@ const BottomNavbar = ({
                       bg: isCurrent ? "green.300" : "gray.600",
                     }}
                   >
-                    {module.lesson}. {module.title}
+                    {chapter.index + 1}. {chapter.title}
                   </Link>
                 );
               })}
