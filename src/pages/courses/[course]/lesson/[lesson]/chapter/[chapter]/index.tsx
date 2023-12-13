@@ -48,9 +48,9 @@ interface Files {
 interface Props {
   mdxSource: MDXRemoteSerializeResult;
   files: Files;
-  current: number;
-  prev: number;
-  next: number;
+  current: string;
+  prev: string;
+  next: string;
   chapters: any[];
 }
 

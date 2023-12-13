@@ -194,6 +194,7 @@ export async function getStaticProps({
   }
 
   const { name, url }: Author = authorFields;
+  
   const sections = entry.fields.sections;
 
   if (!sections || !Array.isArray(sections) || sections.length === 0) {
