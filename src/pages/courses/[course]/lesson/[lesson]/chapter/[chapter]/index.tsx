@@ -341,11 +341,11 @@ export async function getStaticProps({
   const parsedChapter = Number(chapter);
   const res = await getContentByType("courseModule");
   const _course = find(res.items, (item) => {
-    const moduleName = item.fields.moduleName;
-    if (!moduleName || typeof moduleName !== "string") {
+    const slug = item.fields.slug;
+    if (!slug || typeof slug !== "string") {
       throw new Error("Module name is undefined");
     }
-    return moduleName.replace(/\s/g, "-").toLowerCase() === course;
+    return slug === course;
   });
   const modules: any = _course?.fields.sections;
 
@@ -446,9 +446,7 @@ export async function getStaticPaths() {
           return map(_chapters, (chapter, index) => {
             return {
               params: {
-                course: item.fields.moduleName
-                  .replace(/\s/g, "-")
-                  .toLowerCase(),
+                course: item.fields.slug,
                 lesson: module.section,
                 chapter: `${index + 1}`,
               },
