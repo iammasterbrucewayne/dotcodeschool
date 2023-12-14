@@ -8,7 +8,7 @@ The tutorial builds upon the raw content written by [Shawn Tabrizi](https://gith
 
 ## Development
 
-This is a [Next.js](https://nextjs.org/) that uses the Contentful API for hosting the tutorials.
+This is a [Next.js](https://nextjs.org/) project that uses the Contentful API for hosting the tutorials.
 
 Before starting, you'll need to setup the following content models on Contentful:
 
