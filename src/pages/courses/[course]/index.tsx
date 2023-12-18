@@ -22,8 +22,6 @@ import {
 } from "@chakra-ui/react";
 import { get, map, size } from "lodash";
 import { getContentByType } from "@/pages/api/get-content";
-import { createContext } from "react";
-import exp from "constants";
 
 type Module = {
   id: string;
