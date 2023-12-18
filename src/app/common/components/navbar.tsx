@@ -22,6 +22,7 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
+  Avatar,
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { map } from "lodash";
@@ -62,13 +63,25 @@ const StartCourseButton = ({ ...props }: ChakraProps) => {
 
 const Auth = ({ ...props }: ChakraProps) => {
   const { data: session } = useSession();
-  console.log(session);
   return session ? (
     <Menu>
-      <MenuButton as={Button} variant="ghost" {...props}>
-        {session.user.email}
+      <MenuButton as={Button} variant="unstyled" {...props}>
+        <HStack>
+          <Avatar
+            name={session.user?.name || undefined}
+            src={session.user?.image || undefined}
+            size="sm"
+          />
+        </HStack>
       </MenuButton>
       <MenuList>
+        <VStack spacing={0} align="start" px={4} pt={2} pb={4}>
+          <Text fontWeight="semibold">{session.user?.name}</Text>
+          <Text fontSize="sm" fontWeight="normal" color="gray.400">
+            {session.user?.email}
+          </Text>
+        </VStack>
+        <hr />
         <MenuItem onClick={() => signOut()}>Logout</MenuItem>
       </MenuList>
     </Menu>
@@ -137,8 +150,7 @@ const Navbar = ({
       <Spacer />
       <HStack display={{ base: "none", md: "block" }} spacing={4}>
         {navLinks && <NavLinks navLinks={navLinks} />}
-        <Auth />
-        {cta && <StartCourseButton />}
+        {cta ? <StartCourseButton /> : <Auth ml={4} />}
       </HStack>
       <IconButton
         aria-label="Toggle navigation"
