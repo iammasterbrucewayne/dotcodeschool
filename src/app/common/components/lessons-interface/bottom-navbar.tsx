@@ -23,6 +23,9 @@ import { map } from "lodash";
 
 interface BottomNavbarProps {
   isCorrect?: boolean;
+  courseId: string;
+  lessonId: string;
+  chapterId: string;
   current: string;
   prev?: string;
   next?: string;
@@ -32,6 +35,9 @@ interface BottomNavbarProps {
 
 const BottomNavbar = ({
   isCorrect,
+  courseId,
+  lessonId,
+  chapterId,
   current,
   prev,
   next,
@@ -47,6 +53,27 @@ const BottomNavbar = ({
   const handleDrawerClose = () => {
     setIsDrawerOpen(false);
   };
+
+  function updateProgress(
+    courseId: string,
+    lessonId: string,
+    chapterId: string
+  ) {
+    // Load the progress from local storage
+    const progress = JSON.parse(localStorage.getItem("progress") || "{}");
+
+    // Update the progress
+    if (!progress[courseId]) {
+      progress[courseId] = {};
+    }
+    if (!progress[courseId][lessonId]) {
+      progress[courseId][lessonId] = {};
+    }
+    progress[courseId][lessonId][chapterId] = true;
+
+    // Save the progress back to local storage
+    localStorage.setItem("progress", JSON.stringify(progress));
+  }
 
   return (
     <Box
@@ -99,6 +126,9 @@ const BottomNavbar = ({
           {next ? (
             <Button
               as={Link}
+              onClick={() => {
+                updateProgress(courseId, lessonId, chapterId);
+              }}
               href={`/courses/${next}`}
               variant="ghost"
               gap={2}
@@ -116,6 +146,9 @@ const BottomNavbar = ({
               mr={4}
               gap={2}
               href="/courses/success"
+              onClick={() => {
+                updateProgress(courseId, lessonId, chapterId);
+              }}
               _hover={{ textDecor: "none" }}
             >
               <Text display={["none", "block"]}>Finish</Text>

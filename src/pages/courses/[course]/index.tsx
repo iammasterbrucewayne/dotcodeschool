@@ -22,13 +22,14 @@ import {
 } from "@chakra-ui/react";
 import { get, map, size } from "lodash";
 import { getContentByType } from "@/pages/api/get-content";
+import { useEffect, useState } from "react";
 
 type Module = {
   id: string;
   index: number;
   title: string;
   description: string;
-  progress?: number;
+  numOfLessons: number;
 };
 
 interface ModuleProps {
@@ -37,7 +38,41 @@ interface ModuleProps {
 }
 
 const Module = ({ module, slug }: ModuleProps) => {
-  const { index, title, description, progress = 0 } = module;
+  const { index, title, description } = module;
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const countCompletedChapters = (courseId: string, lessonId?: string) => {
+      // Load the progress from local storage
+      const progress = JSON.parse(localStorage.getItem("progress") || "{}");
+
+      // Count the completed chapters
+      let count = 0;
+      if (lessonId) {
+        // Count the completed chapters for a specific lesson
+        for (const chapterId in progress[courseId]?.[lessonId] || {}) {
+          if (progress[courseId][lessonId][chapterId]) {
+            count++;
+          }
+        }
+      } else {
+        // Count the completed chapters for the entire course
+        for (const lessonId in progress[courseId] || {}) {
+          count += countCompletedChapters(courseId, lessonId);
+        }
+      }
+
+      return count;
+    };
+    setProgress(
+      Number(
+        (
+          (countCompletedChapters(slug, `${index + 1}`) / module.numOfLessons) *
+          100
+        ).toFixed(0)
+      )
+    );
+  }, [slug, index]);
 
   return (
     <AccordionItem>
@@ -192,7 +227,7 @@ export async function getStaticProps({
   }
 
   const { name, url }: Author = authorFields;
-  
+
   const sections = entry.fields.sections;
 
   if (!sections || !Array.isArray(sections) || sections.length === 0) {
@@ -211,6 +246,7 @@ export async function getStaticProps({
       id: get(lesson, "sys.id"),
       title: get(lesson, "fields.title"),
       description: get(lesson, "fields.description"),
+      numOfLessons: get(lesson, "fields.lessons.length"),
     };
   });
 
