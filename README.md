@@ -55,7 +55,10 @@ CONTENTFUL_SPACE_ID="<your_contentful_space_id>"
 CONTENTFUL_ENVIRONMENT="<your_contentful_environment>"
 CONTENTFUL_ACCESS_TOKEN="<your_contentful_access_token>"
 
-# GitHub Auth
+# User Auth
+NEXTAUTH_URL="<your_websites_url>"
+NEXTAUTH_SECRET="<your_secret>"
+
 GITHUB_ID="<your_github_client_id>"
 GITHUB_SECRET="<your_github_client_secret>"
 ```
