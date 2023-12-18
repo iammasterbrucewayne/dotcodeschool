@@ -28,6 +28,7 @@ import { HamburgerIcon } from "@chakra-ui/icons";
 import { map } from "lodash";
 import PrimaryButton from "./primary-button";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { Fragment } from "react";
 
 interface NavLink {
   name: string;
@@ -61,34 +62,83 @@ const StartCourseButton = ({ ...props }: ChakraProps) => {
   );
 };
 
-const Auth = ({ ...props }: ChakraProps) => {
+type UserDetailProps = {
+  name?: string;
+  image?: string;
+  email?: string;
+};
+
+const UserDetails = ({ name, image, email }: UserDetailProps) => {
+  return (
+    <HStack
+      px={{ base: 0, md: 4 }}
+      pt={{ base: 0, md: 2 }}
+      pb={{ base: 0, md: 4 }}
+    >
+      <Avatar name={name} src={image} />
+      <VStack spacing={0} align="start">
+        <Text fontWeight="semibold">{name}</Text>
+        <Text fontSize="sm" fontWeight="normal" color="gray.400">
+          {email}
+        </Text>
+      </VStack>
+    </HStack>
+  );
+};
+
+const Auth = () => {
   const { data: session } = useSession();
   return session ? (
-    <Menu>
-      <MenuButton as={Button} variant="unstyled" {...props}>
-        <HStack>
-          <Avatar
-            name={session.user?.name || undefined}
-            src={session.user?.image || undefined}
-            size="sm"
-          />
-        </HStack>
-      </MenuButton>
-      <MenuList>
-        <VStack spacing={0} align="start" px={4} pt={2} pb={4}>
-          <Text fontWeight="semibold">{session.user?.name}</Text>
-          <Text fontSize="sm" fontWeight="normal" color="gray.400">
-            {session.user?.email}
-          </Text>
-        </VStack>
-        <hr />
-        <MenuItem onClick={() => signOut()}>Logout</MenuItem>
-      </MenuList>
-    </Menu>
+    <Fragment>
+      <VStack
+        display={{ base: "flex", md: "none" }}
+        spacing={4}
+        w="full"
+        align="start"
+      >
+        <UserDetails
+          name={session.user?.name || undefined}
+          image={session.user?.image || undefined}
+          email={session.user?.email || undefined}
+        />
+        <Button
+          onClick={() => signOut()}
+          variant="outline"
+          w={{ base: "full", md: "fit-content" }}
+        >
+          Logout
+        </Button>
+      </VStack>
+      <Box display={{ base: "none", md: "block" }}>
+        <Menu>
+          <MenuButton as={Button} variant="unstyled">
+            <HStack>
+              <Avatar
+                name={session.user?.name || undefined}
+                src={session.user?.image || undefined}
+                size="sm"
+              />
+            </HStack>
+          </MenuButton>
+          <MenuList>
+            <UserDetails
+              name={session.user?.name || undefined}
+              image={session.user?.image || undefined}
+              email={session.user?.email || undefined}
+            />
+            <hr />
+            <MenuItem onClick={() => signOut()}>Logout</MenuItem>
+          </MenuList>
+        </Menu>
+      </Box>
+    </Fragment>
   ) : (
-    <Button variant="ghost" onClick={() => signIn()} {...props}>
+    <PrimaryButton
+      onClick={() => signIn()}
+      w={{ base: "full", md: "fit-content" }}
+    >
       Login
-    </Button>
+    </PrimaryButton>
   );
 };
 
@@ -112,12 +162,9 @@ const DrawerMenu = ({
         <DrawerBody px={0}>
           <VStack align="start" spacing={0}>
             {navLinks && <NavLinks navLinks={navLinks} />}
-            <Auth />
-            {cta && (
-              <Box p={6} w="full">
-                <StartCourseButton w="full" />
-              </Box>
-            )}
+            <VStack p={6} w="full">
+              {cta ? <StartCourseButton w="full" /> : <Auth />}
+            </VStack>
           </VStack>
         </DrawerBody>
       </DrawerContent>
@@ -150,7 +197,7 @@ const Navbar = ({
       <Spacer />
       <HStack display={{ base: "none", md: "block" }} spacing={4}>
         {navLinks && <NavLinks navLinks={navLinks} />}
-        {cta ? <StartCourseButton /> : <Auth ml={4} />}
+        {cta ? <StartCourseButton /> : <Auth />}
       </HStack>
       <IconButton
         aria-label="Toggle navigation"
