@@ -17,10 +17,16 @@ import {
   VStack,
   Text,
   ChakraProps,
+  Button,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { map } from "lodash";
 import PrimaryButton from "./primary-button";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 interface NavLink {
   name: string;
@@ -54,6 +60,25 @@ const StartCourseButton = ({ ...props }: ChakraProps) => {
   );
 };
 
+const Auth = ({ ...props }: ChakraProps) => {
+  const { data: session } = useSession();
+  console.log(session);
+  return session ? (
+    <Menu>
+      <MenuButton as={Button} variant="ghost" {...props}>
+        {session.user.email}
+      </MenuButton>
+      <MenuList>
+        <MenuItem onClick={() => signOut()}>Logout</MenuItem>
+      </MenuList>
+    </Menu>
+  ) : (
+    <Button variant="ghost" onClick={() => signIn()} {...props}>
+      Login
+    </Button>
+  );
+};
+
 const DrawerMenu = ({
   navLinks,
   cta,
@@ -74,6 +99,7 @@ const DrawerMenu = ({
         <DrawerBody px={0}>
           <VStack align="start" spacing={0}>
             {navLinks && <NavLinks navLinks={navLinks} />}
+            <Auth />
             {cta && (
               <Box p={6} w="full">
                 <StartCourseButton w="full" />
@@ -111,6 +137,7 @@ const Navbar = ({
       <Spacer />
       <HStack display={{ base: "none", md: "block" }} spacing={4}>
         {navLinks && <NavLinks navLinks={navLinks} />}
+        <Auth />
         {cta && <StartCourseButton />}
       </HStack>
       <IconButton
