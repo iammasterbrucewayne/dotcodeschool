@@ -20,7 +20,9 @@ import {
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { map } from "lodash";
+import logo from "@/../public/logo.svg";
 import PrimaryButton from "./primary-button";
+import Image from "next/image";
 
 interface NavLink {
   name: string;
@@ -70,7 +72,10 @@ const DrawerMenu = ({
       <DrawerOverlay />
       <DrawerContent bg="gray.800" color="white">
         <DrawerCloseButton />
-        <DrawerHeader>dotcodeschool</DrawerHeader>
+        <DrawerHeader>
+          <Image src={logo} alt="dotcodeschool" />
+          dotcodeschool
+        </DrawerHeader>
         <DrawerBody px={0}>
           <VStack align="start" spacing={0}>
             {navLinks && <NavLinks navLinks={navLinks} />}
@@ -103,11 +108,12 @@ const Navbar = ({
       bg="gray.800"
       color="white"
     >
-      <Box as={Link} href="/" _hover={{ textDecor: "none" }}>
+      <HStack as={Link} href="/" _hover={{ textDecor: "none" }}>
+        <Image src={logo} alt="dotcodeschool" height={32} />
         <Text fontFamily="monospace" fontSize="lg" fontWeight="semibold">
           dotcodeschool
         </Text>
-      </Box>
+      </HStack>
       <Spacer />
       <HStack display={{ base: "none", md: "block" }} spacing={4}>
         {navLinks && <NavLinks navLinks={navLinks} />}
