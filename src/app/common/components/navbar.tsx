@@ -43,6 +43,17 @@ const NavLinks = ({ navLinks }: { navLinks: NavLink[] }) => {
   ));
 };
 
+const Logo = () => {
+  return (
+    <HStack as={Link} href="/" _hover={{ textDecor: "none" }}>
+      <Image src={logo} alt="dotcodeschool" height={32} />
+      <Text fontFamily="monospace" fontSize="lg" fontWeight="semibold">
+        dotcodeschool
+      </Text>
+    </HStack>
+  );
+};
+
 const StartCourseButton = ({ ...props }: ChakraProps) => {
   return (
     <PrimaryButton
@@ -73,8 +84,7 @@ const DrawerMenu = ({
       <DrawerContent bg="gray.800" color="white">
         <DrawerCloseButton />
         <DrawerHeader>
-          <Image src={logo} alt="dotcodeschool" />
-          dotcodeschool
+          <Logo />
         </DrawerHeader>
         <DrawerBody px={0}>
           <VStack align="start" spacing={0}>
@@ -108,12 +118,7 @@ const Navbar = ({
       bg="gray.800"
       color="white"
     >
-      <HStack as={Link} href="/" _hover={{ textDecor: "none" }}>
-        <Image src={logo} alt="dotcodeschool" height={32} />
-        <Text fontFamily="monospace" fontSize="lg" fontWeight="semibold">
-          dotcodeschool
-        </Text>
-      </HStack>
+      <Logo />
       <Spacer />
       <HStack display={{ base: "none", md: "block" }} spacing={4}>
         {navLinks && <NavLinks navLinks={navLinks} />}
