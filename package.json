@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@auth/mongodb-adapter": "^2.0.9",
     "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/next-js": "^2.2.0",
     "@chakra-ui/react": "^2.8.2",
@@ -24,6 +25,7 @@
     "contentful": "^10.6.14",
     "framer-motion": "^10.16.12",
     "lodash": "^4.17.21",
+    "mongodb": "^6.3.0",
     "next": "14.0.3",
     "next-auth": "^4.24.5",
     "next-mdx-remote": "^4.4.1",

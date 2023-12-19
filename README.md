@@ -61,6 +61,9 @@ NEXTAUTH_SECRET="<your_secret>"
 
 GITHUB_ID="<your_github_client_id>"
 GITHUB_SECRET="<your_github_client_secret>"
+
+# Database
+MONGODB_URI="<your_mongodb_uri>"
 ```
 
 To start the development server, simply run:
