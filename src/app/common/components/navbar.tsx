@@ -219,7 +219,7 @@ const Navbar = ({
           });
       }
     }
-  }, [status]);
+  }, [status, session?.user]);
 
   return (
     <Flex

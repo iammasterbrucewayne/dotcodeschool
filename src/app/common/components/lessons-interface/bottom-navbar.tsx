@@ -124,7 +124,7 @@ const BottomNavbar = ({
 
   useEffect(() => {
     syncProgress();
-  }, []);
+  }, [syncProgress]);
 
   return (
     <Box

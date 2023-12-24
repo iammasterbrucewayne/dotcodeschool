@@ -83,7 +83,7 @@ const Module = ({ module, slug }: ModuleProps) => {
       );
       setProgress(_progress);
     }
-  }, [slug, index, progressData, module.numOfLessons]);
+  }, [slug, index, progressData, module.numOfLessons, countCompletedChapters]);
 
   return (
     <AccordionItem>
