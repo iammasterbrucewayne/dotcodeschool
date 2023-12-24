@@ -18,8 +18,10 @@ import {
   ChevronRightIcon,
   CheckIcon,
 } from "@chakra-ui/icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { map } from "lodash";
+import axios from "axios";
+import { useSession } from "next-auth/react";
 
 interface BottomNavbarProps {
   isCorrect?: boolean;
@@ -45,6 +47,7 @@ const BottomNavbar = ({
   checkAnswer,
 }: BottomNavbarProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { data: session } = useSession();
 
   const handleDrawerOpen = () => {
     setIsDrawerOpen(true);
@@ -54,13 +57,33 @@ const BottomNavbar = ({
     setIsDrawerOpen(false);
   };
 
-  function updateProgress(
+  // TODO: Refactor this to a custom hook
+  const saveProgress = async (
     courseId: string,
     lessonId: string,
     chapterId: string
-  ) {
+  ) => {
     // Load the progress from local storage
-    const progress = JSON.parse(localStorage.getItem("progress") || "{}");
+    const localProgress: any = localStorage.getItem("progress");
+
+    // Load the progress from the database
+    const savedProgress = session
+      ? await axios
+          .get("/api/get-progress", {
+            params: { user: session?.user },
+          })
+          .then((res) => {
+            return res.data.progress;
+          })
+          .catch((err) => {
+            console.error(err);
+          })
+      : null;
+
+    // Merge the progress from local storage and the database
+    const progress = JSON.parse(
+      savedProgress ? savedProgress : localProgress || "{}"
+    );
 
     // Update the progress
     if (!progress[courseId]) {
@@ -73,7 +96,35 @@ const BottomNavbar = ({
 
     // Save the progress back to local storage
     localStorage.setItem("progress", JSON.stringify(progress));
-  }
+
+    // Save the progress to the database
+    axios
+      .post("/api/update-progress", {
+        updates: [{ user: session?.user, progress }],
+      })
+      .catch((err) => {
+        console.error(err);
+        const pendingUpdates = JSON.parse(
+          localStorage.getItem("pendingUpdates") || "[]"
+        );
+        pendingUpdates.push({ courseId, lessonId, chapterId });
+        localStorage.setItem("pendingUpdates", JSON.stringify(pendingUpdates));
+      });
+  };
+
+  const syncProgress = () => {
+    const pendingUpdates = JSON.parse(
+      localStorage.getItem("pendingUpdates") || "[]"
+    );
+    pendingUpdates.forEach((update: any) => {
+      saveProgress(update.courseId, update.lessonId, update.chapterId);
+    });
+    localStorage.setItem("pendingUpdates", "[]");
+  };
+
+  useEffect(() => {
+    syncProgress();
+  }, []);
 
   return (
     <Box
@@ -127,7 +178,7 @@ const BottomNavbar = ({
             <Button
               as={Link}
               onClick={() => {
-                updateProgress(courseId, lessonId, chapterId);
+                saveProgress(courseId, lessonId, chapterId);
               }}
               href={`/courses/${next}`}
               variant="ghost"
@@ -147,7 +198,7 @@ const BottomNavbar = ({
               gap={2}
               href="/courses/success"
               onClick={() => {
-                updateProgress(courseId, lessonId, chapterId);
+                saveProgress(courseId, lessonId, chapterId);
               }}
               _hover={{ textDecor: "none" }}
             >
