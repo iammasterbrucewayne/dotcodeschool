@@ -24,10 +24,12 @@ import {
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { map } from "lodash";
+import logo from "@/../public/logo.svg";
 import PrimaryButton from "./primary-button";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { Fragment, useEffect } from "react";
 import axios from "axios";
+import Image from "next/image";
 
 interface NavLink {
   name: string;
@@ -46,6 +48,17 @@ const NavLinks = ({ navLinks }: { navLinks: NavLink[] }) => {
       {link.name}
     </Link>
   ));
+};
+
+const Logo = () => {
+  return (
+    <HStack as={Link} href="/" _hover={{ textDecor: "none" }}>
+      <Image src={logo} alt="dotcodeschool" height={32} />
+      <Text fontFamily="monospace" fontSize="lg" fontWeight="semibold">
+        dotcodeschool
+      </Text>
+    </HStack>
+  );
 };
 
 const StartCourseButton = ({ ...props }: ChakraProps) => {
@@ -157,7 +170,9 @@ const DrawerMenu = ({
       <DrawerOverlay />
       <DrawerContent bg="gray.800" color="white">
         <DrawerCloseButton />
-        <DrawerHeader>dotcodeschool</DrawerHeader>
+        <DrawerHeader>
+          <Logo />
+        </DrawerHeader>
         <DrawerBody px={0}>
           <VStack align="start" spacing={0}>
             {navLinks && <NavLinks navLinks={navLinks} />}
@@ -229,11 +244,7 @@ const Navbar = ({
       bg="gray.800"
       color="white"
     >
-      <Box as={Link} href="/" _hover={{ textDecor: "none" }}>
-        <Text fontFamily="monospace" fontSize="lg" fontWeight="semibold">
-          dotcodeschool
-        </Text>
-      </Box>
+      <Logo />
       <Spacer />
       <HStack display={{ base: "none", md: "block" }} spacing={4}>
         {navLinks && <NavLinks navLinks={navLinks} />}
