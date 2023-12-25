@@ -98,28 +98,41 @@ const BottomNavbar = ({
     localStorage.setItem("progress", JSON.stringify(progress));
 
     // Save the progress to the database
-    axios
-      .post("/api/update-progress", {
-        updates: [{ user: session?.user, progress }],
-      })
-      .catch((err) => {
-        console.error(err);
-        const pendingUpdates = JSON.parse(
-          localStorage.getItem("pendingUpdates") || "[]"
-        );
-        pendingUpdates.push({ courseId, lessonId, chapterId });
-        localStorage.setItem("pendingUpdates", JSON.stringify(pendingUpdates));
-      });
+    if (session) {
+      axios
+        .post("/api/update-progress", {
+          updates: [{ user: session?.user, progress }],
+        })
+        .catch((err) => {
+          console.error(err);
+          const pendingUpdates = JSON.parse(
+            localStorage.getItem("pendingUpdates") || "[]"
+          );
+          pendingUpdates.push({ courseId, lessonId, chapterId });
+          localStorage.setItem(
+            "pendingUpdates",
+            JSON.stringify(pendingUpdates)
+          );
+        });
+    } else {
+      const pendingUpdates = JSON.parse(
+        localStorage.getItem("pendingUpdates") || "[]"
+      );
+      pendingUpdates.push({ courseId, lessonId, chapterId });
+      localStorage.setItem("pendingUpdates", JSON.stringify(pendingUpdates));
+    }
   };
 
   const syncProgress = () => {
-    const pendingUpdates = JSON.parse(
-      localStorage.getItem("pendingUpdates") || "[]"
-    );
-    pendingUpdates.forEach((update: any) => {
-      saveProgress(update.courseId, update.lessonId, update.chapterId);
-    });
-    localStorage.setItem("pendingUpdates", "[]");
+    if (session) {
+      const pendingUpdates = JSON.parse(
+        localStorage.getItem("pendingUpdates") || "[]"
+      );
+      pendingUpdates.forEach((update: any) => {
+        saveProgress(update.courseId, update.lessonId, update.chapterId);
+      });
+      localStorage.setItem("pendingUpdates", "[]");
+    }
   };
 
   useEffect(() => {
