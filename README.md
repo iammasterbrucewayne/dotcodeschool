@@ -50,9 +50,20 @@ Before starting, you'll need to setup the following content models on Contentful
 Next, you will need to set up your local environment with the following variables:
 
 ```env
+# Contentful API
 CONTENTFUL_SPACE_ID="<your_contentful_space_id>"
 CONTENTFUL_ENVIRONMENT="<your_contentful_environment>"
 CONTENTFUL_ACCESS_TOKEN="<your_contentful_access_token>"
+
+# User Auth
+NEXTAUTH_URL="<your_websites_url>"
+NEXTAUTH_SECRET="<your_secret>"
+
+GITHUB_ID="<your_github_client_id>"
+GITHUB_SECRET="<your_github_client_secret>"
+
+# Database
+MONGODB_URI="<your_mongodb_uri>"
 ```
 
 To start the development server, simply run:

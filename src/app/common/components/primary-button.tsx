@@ -3,6 +3,7 @@ import { Button, ChakraProps } from "@chakra-ui/react";
 type PrimaryButtonProps = React.PropsWithChildren<ChakraProps> & {
   as?: React.ElementType;
   href?: string;
+  onClick?: () => void;
 };
 
 const PrimaryButton: React.FC<PrimaryButtonProps> = ({

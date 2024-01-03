@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Box,
   Flex,
@@ -17,11 +15,20 @@ import {
   VStack,
   Text,
   ChakraProps,
+  Button,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Avatar,
 } from "@chakra-ui/react";
 import { HamburgerIcon } from "@chakra-ui/icons";
 import { map } from "lodash";
 import logo from "@/../public/logo.svg";
 import PrimaryButton from "./primary-button";
+import { signIn, signOut, useSession } from "next-auth/react";
+import { Fragment, useEffect } from "react";
+import axios from "axios";
 import Image from "next/image";
 
 interface NavLink {
@@ -67,6 +74,86 @@ const StartCourseButton = ({ ...props }: ChakraProps) => {
   );
 };
 
+type UserDetailProps = {
+  name?: string;
+  image?: string;
+  email?: string;
+};
+
+const UserDetails = ({ name, image, email }: UserDetailProps) => {
+  return (
+    <HStack
+      px={{ base: 0, md: 4 }}
+      pt={{ base: 0, md: 2 }}
+      pb={{ base: 0, md: 4 }}
+    >
+      <Avatar name={name} src={image} />
+      <VStack spacing={0} align="start">
+        <Text fontWeight="semibold">{name}</Text>
+        <Text fontSize="sm" fontWeight="normal" color="gray.400">
+          {email}
+        </Text>
+      </VStack>
+    </HStack>
+  );
+};
+
+const Auth = () => {
+  const { data: session } = useSession();
+  return session ? (
+    <Fragment>
+      <VStack
+        display={{ base: "flex", md: "none" }}
+        spacing={4}
+        w="full"
+        align="start"
+      >
+        <UserDetails
+          name={session.user?.name || undefined}
+          image={session.user?.image || undefined}
+          email={session.user?.email || undefined}
+        />
+        <Button
+          onClick={() => signOut()}
+          variant="outline"
+          w={{ base: "full", md: "fit-content" }}
+        >
+          Logout
+        </Button>
+      </VStack>
+      <Box display={{ base: "none", md: "block" }}>
+        <Menu>
+          <MenuButton as={Button} variant="unstyled">
+            <HStack>
+              <Avatar
+                name={session.user?.name || undefined}
+                src={session.user?.image || undefined}
+                size="sm"
+              />
+            </HStack>
+          </MenuButton>
+          <MenuList>
+            <UserDetails
+              name={session.user?.name || undefined}
+              image={session.user?.image || undefined}
+              email={session.user?.email || undefined}
+            />
+            <hr />
+            <MenuItem onClick={() => signOut()}>Logout</MenuItem>
+          </MenuList>
+        </Menu>
+      </Box>
+    </Fragment>
+  ) : (
+    <PrimaryButton
+      onClick={() => signIn()}
+      w={{ base: "full", md: "fit-content" }}
+    >
+      Login
+    </PrimaryButton>
+  );
+};
+
 const DrawerMenu = ({
   navLinks,
   cta,
@@ -89,11 +176,9 @@ const DrawerMenu = ({
         <DrawerBody px={0}>
           <VStack align="start" spacing={0}>
             {navLinks && <NavLinks navLinks={navLinks} />}
-            {cta && (
-              <Box p={6} w="full">
-                <StartCourseButton w="full" />
-              </Box>
-            )}
+            <VStack p={6} w="full">
+              {cta ? <StartCourseButton w="full" /> : <Auth />}
+            </VStack>
           </VStack>
         </DrawerBody>
       </DrawerContent>
@@ -109,6 +194,47 @@ const Navbar = ({
   cta?: boolean;
 }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { data: session, status } = useSession();
+
+  // TODO: Move this to a custom hook
+  useEffect(() => {
+    if (status === "authenticated") {
+      const pendingUpdates = JSON.parse(
+        localStorage.getItem("pendingUpdates") || "[]"
+      );
+
+      const updates = pendingUpdates.map(
+        ({ courseId, lessonId, chapterId }: any) => {
+          const progress = JSON.parse(localStorage.getItem("progress") || "{}");
+          // Update the progress
+          if (!progress[courseId]) {
+            progress[courseId] = {};
+          }
+          if (!progress[courseId][lessonId]) {
+            progress[courseId][lessonId] = {};
+          }
+          progress[courseId][lessonId][chapterId] = true;
+          return {
+            user: session?.user,
+            progress,
+          };
+        }
+      );
+
+      if (pendingUpdates.length > 0) {
+        axios
+          .post("/api/update-progress", {
+            updates,
+          })
+          .then(() => {
+            localStorage.removeItem("pendingUpdates");
+          })
+          .catch((err) => {
+            console.error(err);
+          });
+      }
+    }
+  }, [status, session?.user]);
 
   return (
     <Flex
@@ -122,7 +248,7 @@ const Navbar = ({
       <Spacer />
       <HStack display={{ base: "none", md: "block" }} spacing={4}>
         {navLinks && <NavLinks navLinks={navLinks} />}
-        {cta && <StartCourseButton />}
+        {cta ? <StartCourseButton /> : <Auth />}
       </HStack>
       <IconButton
         aria-label="Toggle navigation"

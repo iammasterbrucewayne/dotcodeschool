@@ -46,6 +46,9 @@ interface Files {
 }
 
 interface Props {
+  courseId: string;
+  lessonId: string;
+  chapterId: string;
   mdxSource: MDXRemoteSerializeResult;
   files: Files;
   current: string;
@@ -61,6 +64,9 @@ const MODES = {
 const MODE = MODES.EDITOR;
 
 export default function CourseModule({
+  courseId,
+  lessonId,
+  chapterId,
   mdxSource,
   files,
   current,
@@ -176,6 +182,9 @@ export default function CourseModule({
       <BottomNavbar
         prev={prev}
         next={next}
+        courseId={courseId}
+        lessonId={lessonId}
+        chapterId={chapterId}
         current={current}
         chapters={chapters}
         isCorrect={isCorrect}
@@ -395,6 +404,9 @@ export async function getStaticProps({
 
   return {
     props: {
+      courseId: course,
+      lessonId: lesson,
+      chapterId: chapter,
       mdxSource,
       files: { source, template, solution },
       current,

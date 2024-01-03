@@ -18,11 +18,16 @@ import {
   ChevronRightIcon,
   CheckIcon,
 } from "@chakra-ui/icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { map } from "lodash";
+import axios from "axios";
+import { useSession } from "next-auth/react";
 
 interface BottomNavbarProps {
   isCorrect?: boolean;
+  courseId: string;
+  lessonId: string;
+  chapterId: string;
   current: string;
   prev?: string;
   next?: string;
@@ -32,6 +37,9 @@ interface BottomNavbarProps {
 
 const BottomNavbar = ({
   isCorrect,
+  courseId,
+  lessonId,
+  chapterId,
   current,
   prev,
   next,
@@ -39,6 +47,7 @@ const BottomNavbar = ({
   checkAnswer,
 }: BottomNavbarProps) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { data: session } = useSession();
 
   const handleDrawerOpen = () => {
     setIsDrawerOpen(true);
@@ -47,6 +56,88 @@ const BottomNavbar = ({
   const handleDrawerClose = () => {
     setIsDrawerOpen(false);
   };
+
+  // TODO: Refactor this to a custom hook
+  const saveProgress = async (
+    courseId: string,
+    lessonId: string,
+    chapterId: string
+  ) => {
+    // Load the progress from local storage
+    const localProgress: any = localStorage.getItem("progress");
+
+    // Load the progress from the database
+    const savedProgress = session
+      ? await axios
+          .get("/api/get-progress", {
+            params: { user: session?.user },
+          })
+          .then((res) => {
+            return res.data.progress;
+          })
+          .catch((err) => {
+            console.error(err);
+          })
+      : null;
+
+    // Merge the progress from local storage and the database
+    const progress = JSON.parse(
+      savedProgress ? savedProgress : localProgress || "{}"
+    );
+
+    // Update the progress
+    if (!progress[courseId]) {
+      progress[courseId] = {};
+    }
+    if (!progress[courseId][lessonId]) {
+      progress[courseId][lessonId] = {};
+    }
+    progress[courseId][lessonId][chapterId] = true;
+
+    // Save the progress back to local storage
+    localStorage.setItem("progress", JSON.stringify(progress));
+
+    // Save the progress to the database
+    if (session) {
+      axios
+        .post("/api/update-progress", {
+          updates: [{ user: session?.user, progress }],
+        })
+        .catch((err) => {
+          console.error(err);
+          const pendingUpdates = JSON.parse(
+            localStorage.getItem("pendingUpdates") || "[]"
+          );
+          pendingUpdates.push({ courseId, lessonId, chapterId });
+          localStorage.setItem(
+            "pendingUpdates",
+            JSON.stringify(pendingUpdates)
+          );
+        });
+    } else {
+      const pendingUpdates = JSON.parse(
+        localStorage.getItem("pendingUpdates") || "[]"
+      );
+      pendingUpdates.push({ courseId, lessonId, chapterId });
+      localStorage.setItem("pendingUpdates", JSON.stringify(pendingUpdates));
+    }
+  };
+
+  const syncProgress = () => {
+    if (session) {
+      const pendingUpdates = JSON.parse(
+        localStorage.getItem("pendingUpdates") || "[]"
+      );
+      pendingUpdates.forEach((update: any) => {
+        saveProgress(update.courseId, update.lessonId, update.chapterId);
+      });
+      localStorage.setItem("pendingUpdates", "[]");
+    }
+  };
+
+  useEffect(() => {
+    syncProgress();
+  }, [syncProgress]);
 
   return (
     <Box
@@ -99,6 +190,9 @@ const BottomNavbar = ({
           {next ? (
             <Button
               as={Link}
+              onClick={() => {
+                saveProgress(courseId, lessonId, chapterId);
+              }}
               href={`/courses/${next}`}
               variant="ghost"
               gap={2}
@@ -116,6 +210,9 @@ const BottomNavbar = ({
               mr={4}
               gap={2}
               href="/courses/success"
+              onClick={() => {
+                saveProgress(courseId, lessonId, chapterId);
+              }}
               _hover={{ textDecor: "none" }}
             >
               <Text display={["none", "block"]}>Finish</Text>
