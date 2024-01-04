@@ -209,7 +209,7 @@ const BottomNavbar = ({
               px={[4, 8]}
               mr={4}
               gap={2}
-              href="/courses/success"
+              href={`/courses/${courseId}/lesson/${lessonId}/success`}
               onClick={() => {
                 saveProgress(courseId, lessonId, chapterId);
               }}

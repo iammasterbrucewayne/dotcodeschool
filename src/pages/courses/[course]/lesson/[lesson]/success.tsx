@@ -12,11 +12,21 @@ import Lottie from "react-lottie";
 import { FaTwitter, FaDiscord } from "react-icons/fa";
 import successAnimation from "@/../public/static/successAnimation.json";
 import Navbar from "@/app/common/components/navbar";
+import { getContentByType } from "@/pages/api/get-content";
+import { flatMapDeep } from "lodash";
 
-const SuccessPage: React.FC = () => {
+interface SuccessPageProps {
+  course: string;
+  lesson: string;
+}
+
+const SuccessPage: React.FC<SuccessPageProps> = (props: SuccessPageProps) => {
   const tweetText = encodeURIComponent(
-    "I just completed the Rust State Machine course on https://dotcodeschool.vercel.app.\n\nNow, I am one step closer to building my own blockchain on @Polkadot."
+    "I just completed the Rust State Machine course on https://dotcodeschool.com.\n\nNow, I am one step closer to building my own blockchain on @Polkadot."
   );
+
+  const { course, lesson } = props;
+
   const lottieContainerRef = React.useRef<HTMLDivElement | null>(null);
   const [textOpacity, setTextOpacity] = useState(0);
 
@@ -63,7 +73,7 @@ const SuccessPage: React.FC = () => {
           mt={-8}
           transition="opacity 2s"
         >
-          Level 1: Apprentice of the Rusty State
+          Level {lesson}: Apprentice of the Rusty State
         </Text>
         <Text
           fontSize="lg"
@@ -134,3 +144,32 @@ const SuccessPage: React.FC = () => {
 };
 
 export default SuccessPage;
+
+export function getStaticProps({ params }: any) {
+  return {
+    props: params,
+  };
+}
+
+export async function getStaticPaths() {
+  const res = await getContentByType("courseModule");
+  const paths = res.items.map((item: any) => {
+    const { slug, sections } = item.fields;
+    return sections.map((section: any, index: number) => {
+      const result = {
+        params: {
+          course: slug,
+          lesson: `${index + 1}`,
+        },
+      };
+      return result;
+    });
+  });
+
+  const flattenedPaths = flatMapDeep(paths);
+
+  return {
+    paths: flattenedPaths,
+    fallback: false,
+  };
+}
