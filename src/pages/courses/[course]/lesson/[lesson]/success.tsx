@@ -9,7 +9,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import Lottie from "react-lottie";
-import { FaTwitter, FaDiscord } from "react-icons/fa";
+import { FaTwitter, FaDiscord, FaArrowRight } from "react-icons/fa";
 import successAnimation from "@/../public/static/successAnimation.json";
 import Navbar from "@/app/common/components/navbar";
 import { getContentByType } from "@/pages/api/get-content";
@@ -21,6 +21,7 @@ interface SuccessPageProps {
 }
 
 const SuccessPage: React.FC<SuccessPageProps> = (props: SuccessPageProps) => {
+  const totalLessonsInCourse = 7;
   const tweetText = encodeURIComponent(
     "I just completed the Rust State Machine course on https://dotcodeschool.com.\n\nNow, I am one step closer to building my own blockchain on @Polkadot."
   );
@@ -92,21 +93,43 @@ const SuccessPage: React.FC<SuccessPageProps> = (props: SuccessPageProps) => {
           transitionDelay="4s"
           mt={8}
         >
-          <Button
-            as={Link}
-            href={`https://twitter.com/intent/tweet?text=${tweetText}`}
-            bg="white"
-            color="gray.800"
-            size="lg"
-            mb={4}
-            isExternal
-            _hover={{
-              bg: "gray.200",
-              textDecoration: "none",
-            }}
-          >
-            Share Achievement on Twitter
-          </Button>
+          <VStack spacing={4} mb={8}>
+            {Number(lesson) < totalLessonsInCourse ? (
+              <Button
+                as={Link}
+                href={`/courses/${course}/lesson/${lesson}/chapter/1`}
+                rightIcon={<FaArrowRight />}
+                bg="white"
+                color="gray.800"
+                w="full"
+                size="lg"
+                _hover={{
+                  bg: "gray.200",
+                  textDecoration: "none",
+                }}
+              >
+                Next Lesson
+              </Button>
+            ) : (
+              <Button
+                as={Link}
+                leftIcon={<FaTwitter />}
+                href={`https://twitter.com/intent/tweet?text=${tweetText}`}
+                bg="white"
+                color="gray.800"
+                w="full"
+                size="lg"
+                _hover={{
+                  bg: "gray.200",
+                  textDecoration: "none",
+                }}
+                px={12}
+                isExternal
+              >
+                Tweet Your Achievement
+              </Button>
+            )}
+          </VStack>
           <ButtonGroup spacing={4}>
             <IconButton
               as={Link}
