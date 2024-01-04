@@ -97,7 +97,7 @@ const SuccessPage: React.FC<SuccessPageProps> = (props: SuccessPageProps) => {
             {Number(lesson) < totalLessonsInCourse ? (
               <Button
                 as={Link}
-                href={`/courses/${course}/lesson/${lesson}/chapter/1`}
+                href={`/courses/${course}/lesson/${lesson + 1}/chapter/1`}
                 rightIcon={<FaArrowRight />}
                 bg="white"
                 color="gray.800"
