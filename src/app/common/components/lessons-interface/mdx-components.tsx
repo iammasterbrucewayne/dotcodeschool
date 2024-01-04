@@ -104,7 +104,7 @@ const MDXComponents = {
   h2: (props: any) => <Heading as="h2" size="lg" {...props} />,
   h3: (props: any) => <Heading as="h3" size="md" {...props} />,
   p: (props: any) => <Text my={4} {...props} />,
-  a: (props: any) => <Link color="green.300" {...props} />,
+  a: (props: any) => <Link color="green.300" isExternal {...props} />,
   ul: (props: any) => <Box as="ul" pt={2} pl={4} ml={2} {...props} />,
   ol: (props: any) => <Box as="ol" pt={2} pl={4} ml={2} {...props} />,
   li: (props: any) => <Box as="li" pb={4} {...props} />,
