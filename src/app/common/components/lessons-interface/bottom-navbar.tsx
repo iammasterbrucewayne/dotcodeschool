@@ -136,7 +136,7 @@ const BottomNavbar = ({
       }
     };
     syncProgress();
-  }, []);
+  }, [session, saveProgress]);
 
   return (
     <Box
