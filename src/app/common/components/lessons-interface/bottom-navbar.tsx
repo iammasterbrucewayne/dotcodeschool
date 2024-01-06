@@ -18,7 +18,7 @@ import {
   ChevronRightIcon,
   CheckIcon,
 } from "@chakra-ui/icons";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { map } from "lodash";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -58,7 +58,7 @@ const BottomNavbar = ({
   };
 
   // TODO: Refactor this to a custom hook
-  const saveProgress = async (
+  const saveProgress = useCallback(async (
     courseId: string,
     lessonId: string,
     chapterId: string
@@ -121,7 +121,7 @@ const BottomNavbar = ({
       pendingUpdates.push({ courseId, lessonId, chapterId });
       localStorage.setItem("pendingUpdates", JSON.stringify(pendingUpdates));
     }
-  };
+  }, [session]);
 
   useEffect(() => {
     const syncProgress = () => {
