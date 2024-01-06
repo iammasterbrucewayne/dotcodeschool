@@ -123,21 +123,20 @@ const BottomNavbar = ({
     }
   };
 
-  const syncProgress = () => {
-    if (session) {
-      const pendingUpdates = JSON.parse(
-        localStorage.getItem("pendingUpdates") || "[]"
-      );
-      pendingUpdates.forEach((update: any) => {
-        saveProgress(update.courseId, update.lessonId, update.chapterId);
-      });
-      localStorage.setItem("pendingUpdates", "[]");
-    }
-  };
-
   useEffect(() => {
+    const syncProgress = () => {
+      if (session) {
+        const pendingUpdates = JSON.parse(
+          localStorage.getItem("pendingUpdates") || "[]"
+        );
+        pendingUpdates.forEach((update: any) => {
+          saveProgress(update.courseId, update.lessonId, update.chapterId);
+        });
+        localStorage.setItem("pendingUpdates", "[]");
+      }
+    };
     syncProgress();
-  }, [syncProgress]);
+  }, []);
 
   return (
     <Box

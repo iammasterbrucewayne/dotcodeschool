@@ -22,7 +22,7 @@ import {
 } from "@chakra-ui/react";
 import { forEach, get, isEmpty, isString, map, size } from "lodash";
 import { getContentByType } from "@/pages/api/get-content";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 
 type Module = {
@@ -43,7 +43,7 @@ const Module = ({ module, slug }: ModuleProps) => {
   const [progress, setProgress] = useState(0);
   const progressData = useContext(ProgressProvider);
 
-  const countCompletedChapters = (
+  const countCompletedChapters = useCallback((
     courseId: string,
     lessonId?: string,
     progressData?: any
@@ -68,7 +68,7 @@ const Module = ({ module, slug }: ModuleProps) => {
     }
 
     return count;
-  };
+  }, []);
 
   useEffect(() => {
     if (!isEmpty(progressData)) {
